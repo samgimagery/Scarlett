@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Scarlett</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, system-ui, sans-serif;
+  background: #1a1614;
+  color: #e8ddd4;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 32px;
+  width: 100%;
+  max-width: 440px;
+}
+
+/* — The Orb — */
+.orb-wrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orb-glow {
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(230,130,80,.25) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity .5s ease;
+}
+.orb-glow.active { opacity: 1; }
+
+.orb {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #c87840, #a05828);
+  box-shadow:
+    0 2px 20px rgba(180,90,40,.2),
+    inset 0 1px 0 rgba(255,255,255,.15);
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .3s ease, background .4s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  -webkit-user-select: none;
+}
+.orb:active { transform: scale(.97); }
+
+.orb-label {
+  font-size: 64px;
+  font-weight: 300;
+  color: rgba(255,255,255,.7);
+  letter-spacing: 0;
+  text-transform: uppercase;
+  pointer-events: none;
+  transition: opacity .3s;
+  text-shadow: 0 1px 4px rgba(0,0,0,.3);
+}
+
+/* Idle — gentle breathing */
+.orb-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(200,120,60,.2);
+  opacity: 0;
+  animation: none;
+  z-index: 0;
+}
+.orb-ring.breathing {
+  opacity: 1;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+/* Connected — ready */
+.orb.ready {
+  background: linear-gradient(145deg, #e09050, #c07030);
+  box-shadow:
+    0 2px 24px rgba(200,100,40,.25),
+    inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+/* Listening — bright, warm */
+.orb.listening {
+  background: linear-gradient(145deg, #f0b070, #d88848);
+  box-shadow:
+    0 2px 24px rgba(200,100,40,.25),
+    0 0 0 8px rgba(230,130,80,.12),
+    inset 0 1px 0 rgba(255,255,255,.25);
+}
+.orb.listening .orb-ring.breathing {
+  border-color: rgba(240,160,80,.4);
+  animation: pulse-ring 1.2s ease-in-out infinite;
+}
+
+/* Thinking — deeper, rotating dashed */
+.orb.thinking {
+  background: linear-gradient(145deg, #b87038, #985828);
+}
+.orb.thinking .orb-ring.breathing {
+  animation: rotate-ring 2s linear infinite;
+  border-style: dashed;
+  border-color: rgba(200,130,70,.4);
+}
+
+/* Speaking — reacts to audio amplitude */
+.orb.speaking {
+  background: linear-gradient(145deg, #e09050, #c07030);
+  transition: transform .06s ease, box-shadow .15s ease;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: .4; }
+  50% { transform: scale(1.04); opacity: .8; }
+}
+
+@keyframes pulse-ring {
+  0%, 100% { transform: scale(1); opacity: .6; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+@keyframes rotate-ring {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* — Transcript — */
+.transcript {
+  width: 100%;
+  text-align: center;
+  min-height: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.transcript-user {
+  font-size: 14px;
+  color: #9a8070;
+  font-style: italic;
+}
+
+.transcript-scarlett {
+  font-size: 14px;
+  color: #d4b898;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.status-text {
+  font-size: 11px;
+  color: #7a6558;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* — Latency (minimal) — */
+.latency {
+  display: flex;
+  gap: 10px;
+  font-size: 10px;
+  color: #5a4a40;
+  font-variant-numeric: tabular-nums;
+}
+.latency span { font-weight: 600; color: #7a6558; }
+
+/* — Error state — */
+.orb.error {
+  background: linear-gradient(145deg, #8a4030, #6a2820);
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="orb-wrap">
+    <div class="orb-glow" id="glow"></div>
+    <div class="orb-ring breathing" id="ring"></div>
+    <div class="orb" id="orb">
+      <div class="orb-label" id="orbLabel">V</div>
+    </div>
+  </div>
+
+  <div class="transcript" id="transcript">
+    <div class="status-text" id="statusText">Connecting…</div>
+  </div>
+
+  <div class="latency" id="latency"></div>
+</div>
+
+<script>
+const orb      = document.getElementById('orb');
+const glow     = document.getElementById('glow');
+const ring     = document.getElementById('ring');
+const label    = document.getElementById('orbLabel');
+const tArea    = document.getElementById('transcript');
+const statusT  = document.getElementById('statusText');
+const latEl    = document.getElementById('latency');
+
+let ws = null;
+let recording = false;
+let connected = false;
+let micStream = null;
+let micSource = null;
+let processor = null;
+let chunks    = [];
+let analyser  = null;
+let animFrame = null;
+
+// Audio context for playback analysis
+let playbackCtx = null;
+let playbackAnalyser = null;
+
+// Streaming audio playback
+let audioChunks = [];   // queued ArrayBuffer chunks
+let isPlaying = false;  // playback in progress
+
+async function playNextChunk() {
+  if (audioChunks.length === 0) {
+    isPlaying = false;
+    stopVib();
+    setState('listening');
+    return;
+  }
+  
+  isPlaying = true;
+  const data = audioChunks.shift();
+  const blob = new Blob([data], { type: 'audio/wav' });
+  const url = URL.createObjectURL(blob);
+  
+  try {
+    if (!playbackCtx) playbackCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const arrayBuf = await blob.arrayBuffer();
+    const audioBuffer = await playbackCtx.decodeAudioData(arrayBuf);
+    const source = playbackCtx.createBufferSource();
+    source.buffer = audioBuffer;
+    
+    playbackAnalyser = playbackCtx.createAnalyser();
+    playbackAnalyser.fftSize = 256;
+    playbackAnalyser.smoothingTimeConstant = 0.6;
+    
+    source.connect(playbackAnalyser);
+    playbackAnalyser.connect(playbackCtx.destination);
+    
+    source.onended = () => {
+      URL.revokeObjectURL(url);
+      playNextChunk(); // play next chunk in queue
+    };
+    
+    source.start(0);
+    startVib(playbackAnalyser, source);
+  } catch (err) {
+    console.error('Chunk playback failed:', err);
+    URL.revokeObjectURL(url);
+    playNextChunk(); // skip and try next
+  }
+}
+
+// — State —
+function setState(state) {
+  orb.className = 'orb ' + state;
+  ring.className = 'orb-ring breathing';
+  glow.className = 'orb-glow' + (state === 'listening' || state === 'speaking' ? ' active' : '');
+
+  const labels = {
+    'ready': '',
+    'listening': '',
+    'thinking': '',
+    'speaking': '',
+  };
+  label.textContent = labels[state] ?? 'V';
+  statusT.textContent = labels[state] || 'Ready';
+
+  if (state !== 'speaking') stopVib();
+}
+
+// — Audio-reactive orb vibration —
+function startVib(analyserNode, sourceNode) {
+  const data = new Uint8Array(analyserNode.frequencyBinCount);
+  function animate() {
+    analyserNode.getByteFrequencyData(data);
+    // Average amplitude of low-mid frequencies (voice range)
+    let sum = 0, count = 0;
+    for (let i = 2; i < 40; i++) { sum += data[i]; count++; }
+    const avg = sum / count / 255;
+    // Scale: 1.0 (silence) to 1.08 (loud)
+    const scale = 1.0 + avg * 0.10;
+    // Glow intensity
+    const glowIntensity = avg * 0.6;
+    orb.style.transform = `scale(${scale})`;
+    orb.style.boxShadow = `
+      0 2px 24px rgba(200,100,40,${0.2 + avg * 0.3}),
+      0 0 ${20 + avg * 40}px rgba(230,130,80,${glowIntensity}),
+      inset 0 1px 0 rgba(255,255,255,.2)
+    `;
+    animFrame = requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+function stopVib() {
+  if (animFrame) cancelAnimationFrame(animFrame);
+  animFrame = null;
+  orb.style.transform = '';
+  orb.style.boxShadow = '';
+}
+
+// — WebSocket —
+function getWsUrl() {
+  // Same origin — WS and HTTP on the same port (8765)
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${location.host}`;
+}
+
+function connect() {
+  const wsUrl = getWsUrl();
+  console.log('Connecting to', wsUrl);
+  ws = new WebSocket(wsUrl);
+  ws.binaryType = 'arraybuffer';
+
+  ws.onopen = () => {
+    connected = true;
+    setState('ready');
+  };
+
+  ws.onmessage = async (e) => {
+    if (e.data instanceof ArrayBuffer) {
+      // Queue audio chunk for sequential playback
+      audioChunks.push(e.data);
+      if (!isPlaying) playNextChunk();
+      return;
+    }
+
+    const msg = JSON.parse(e.data);
+
+    if (msg.type === 'transcript') {
+      tArea.innerHTML = `<div class="transcript-user">"${msg.text}"</div><div class="status-text">Thinking…</div>`;
+      setState('thinking');
+      addLatency('STT', msg.time);
+    } else if (msg.type === 'reply') {
+      tArea.innerHTML = `<div class="transcript-scarlett">${msg.text}</div><div class="status-text">Speaking…</div>`;
+      addLatency('LLM', msg.time);
+    } else if (msg.type === 'audio_info') {
+      setState('speaking');
+      if (msg.filler) {
+        addLatency('Filler', msg.time);
+      } else {
+        addLatency('TTS (first chunk)', msg.time);
+      }
+    } else if (msg.type === 'audio_chunk') {
+      if (msg.filler) {
+        // Filler chunk — already queued for playback
+        addLatency('Filler', 'played');
+      }
+      // Streaming chunk arrived — already queued for playback
+    } else if (msg.type === 'audio_done') {
+      addLatency('TTS (total)', msg.time);
+    } else if (msg.type === 'status') {
+      tArea.innerHTML = `<div class="status-text">${msg.text}</div>`;
+      setState('listening');
+    }
+  };
+
+  ws.onclose = () => {
+    connected = false;
+    setState('');
+    label.textContent = 'V';
+    statusT.textContent = 'Reconnecting…';
+    setTimeout(connect, 2000);
+  };
+
+  ws.onerror = () => {
+    connected = false;
+    statusT.textContent = 'Connection lost';
+  };
+}
+
+function addLatency(label, time) {
+  latEl.innerHTML += `${label} <span>${time}</span>  `;
+}
+
+// — Mic recording —
+async function startRec() {
+  if (recording) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true }
+    });
+    const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+    const src = ctx.createMediaStreamSource(stream);
+    const proc = ctx.createScriptProcessor(4096, 1, 1);
+    chunks = [];
+    proc.onaudioprocess = (e) => {
+      chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+    };
+    src.connect(proc);
+    proc.connect(ctx.destination);
+    micStream = stream; micSource = src; processor = proc;
+    recording = true;
+    setState('listening');
+  } catch (err) {
+    statusT.textContent = 'Mic access denied — check Settings > Safari > Microphone';
+    label.textContent = '!';
+    orb.className = 'orb error';
+    console.error('Mic error:', err);
+  }
+}
+
+function stopRec() {
+  if (!recording) return;
+  recording = false;
+  if (micStream) micStream.getTracks().forEach(t => t.stop());
+  if (micSource) micSource.disconnect();
+  if (processor) processor.disconnect();
+
+  const total = chunks.reduce((a, c) => a + c.length, 0);
+  const combined = new Float32Array(total);
+  let off = 0;
+  for (const c of chunks) { combined.set(c, off); off += c.length; }
+
+  const wav = encodeWAV(combined, 16000);
+  if (ws?.readyState === WebSocket.OPEN) ws.send(wav);
+
+  setState('thinking');
+  chunks = [];
+}
+
+function encodeWAV(samples, sr) {
+  const buf = new ArrayBuffer(44 + samples.length * 2);
+  const v = new DataView(buf);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0,'RIFF'); v.setUint32(4,36+samples.length*2,true); w(8,'WAVE');
+  w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+  v.setUint32(24,sr,true); v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
+  w(36,'data'); v.setUint32(40,samples.length*2,true);
+  let o=44;
+  for (let i=0;i<samples.length;i++,o+=2) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    v.setInt16(o, s<0 ? s*0x8000 : s*0x7FFF, true);
+  }
+  return buf;
+}
+
+// — Call mode: tap to start, tap to end —
+// On first tap: request mic permission, then start call
+// On subsequent taps: toggle between listening (recording) and waiting (not recording)
+
+let callActive = false;
+let micPermissionGranted = false;
+
+async function handleTap() {
+  if (!connected) return;
+
+  // First time: request mic permission + start call
+  if (!micPermissionGranted) {
+    try {
+      // iOS Safari: getUserMedia must be called from user gesture
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true }
+      });
+      // Permission granted — stop the test stream, we'll start properly
+      stream.getTracks().forEach(t => t.stop());
+      micPermissionGranted = true;
+    } catch (err) {
+      statusT.textContent = 'Mic access denied — Settings > Safari > Microphone';
+      label.textContent = '!';
+      orb.className = 'orb error';
+      console.error('Mic permission denied:', err);
+      return;
+    }
+  }
+
+  // Toggle call state
+  if (!callActive) {
+    // Start call
+    callActive = true;
+    startRec();
+  } else {
+    // End call
+    callActive = false;
+    stopRec();
+  }
+}
+
+// Single tap handler for both iOS and desktop
+orb.addEventListener('click', (e) => { e.preventDefault(); handleTap(); });
+
+// Spacebar toggle for desktop
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && !e.repeat) {
+    e.preventDefault();
+    if (!callActive) { callActive = true; startRec(); }
+  }
+});
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (callActive && recording) { callActive = false; stopRec(); }
+  }
+});
+
+connect();
+</script>
+</body>
+</html>

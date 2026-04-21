@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Scarlett</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, system-ui, sans-serif;
+  background: #1a1614;
+  color: #e8ddd4;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 32px;
+  width: 100%;
+  max-width: 440px;
+}
+
+/* — Orb — */
+.orb-wrap {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orb-glow {
+  position: absolute;
+  inset: -40px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(230,130,80,.2) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.orb-glow.active { opacity: 1; }
+
+.orb {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #a05828, #804020);
+  box-shadow: 0 2px 20px rgba(180,90,40,.15), inset 0 1px 0 rgba(255,255,255,.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  transition: transform .08s ease, box-shadow .15s ease, background .3s ease;
+  cursor: pointer;
+}
+.orb:active { transform: scale(.96); }
+
+.orb-ring {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid rgba(200,120,60,.15);
+  opacity: 0;
+  z-index: 0;
+}
+
+/* States */
+.orb.idle { background: linear-gradient(145deg, #a05828, #804020); }
+.orb.idle .orb-ring { opacity: .3; animation: breathe 4s ease-in-out infinite; }
+
+.orb.live { background: linear-gradient(145deg, #d08040, #b06828); }
+.orb.live .orb-ring { opacity: 1; animation: pulse-ring 2s ease-in-out infinite; border-color: rgba(230,130,80,.3); }
+.orb.live .orb-glow { opacity: .3; }
+
+.orb.hearing { background: linear-gradient(145deg, #e89858, #d08040); }
+.orb.hearing .orb-ring { animation: pulse-ring .8s ease-in-out infinite; border-color: rgba(240,160,80,.5); }
+.orb.hearing .orb-glow { opacity: .6; }
+
+.orb.thinking { background: linear-gradient(145deg, #b87038, #985828); }
+.orb.thinking .orb-ring { animation: rotate-ring 2s linear infinite; border-style: dashed; border-color: rgba(200,130,70,.4); opacity: 1; }
+
+.orb.speaking { background: linear-gradient(145deg, #e09050, #c07030); }
+.orb.speaking .orb-ring { opacity: 1; animation: breathe 1.5s ease-in-out infinite; border-color: rgba(230,130,80,.4); }
+.orb.speaking .orb-glow { opacity: .5; }
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: .3; }
+  50% { transform: scale(1.04); opacity: .8; }
+}
+@keyframes pulse-ring {
+  0%, 100% { transform: scale(1); opacity: .5; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+@keyframes rotate-ring {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* — Call info — */
+.call-info {
+  text-align: center;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.call-timer {
+  font-size: 13px;
+  color: #7a6558;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .05em;
+}
+
+.call-status {
+  font-size: 11px;
+  color: #5a4a40;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.transcript-line {
+  font-size: 13px;
+  color: #c8a888;
+  line-height: 1.4;
+  max-width: 300px;
+}
+
+.transcript-line.user {
+  color: #9a8070;
+  font-style: italic;
+}
+
+/* — VAD bar — */
+.vad-bar {
+  width: 120px;
+  height: 3px;
+  background: #2a2420;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.vad-fill {
+  height: 100%;
+  width: 0%;
+  background: #c87840;
+  border-radius: 2px;
+  transition: width .08s ease;
+}
+
+/* — Latency — */
+.latency {
+  display: none;  /* Hidden in call mode — show only for debug */
+  gap: 10px;
+  font-size: 10px;
+  color: #5a4a40;
+  font-variant-numeric: tabular-nums;
+}
+.latency span { font-weight: 600; color: #7a6558; }
+
+/* — End call button — */
+.end-btn {
+  display: none;
+  padding: 10px 32px;
+  border: 1px solid #6a3828;
+  border-radius: 24px;
+  background: rgba(120,40,20,.3);
+  color: #c87060;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s;
+}
+.end-btn:hover { background: rgba(120,40,20,.5); border-color: #8a4838; }
+.end-btn.visible { display: block; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="orb-wrap">
+    <div class="orb-glow" id="glow"></div>
+    <div class="orb-ring" id="ring"></div>
+    <div class="orb idle" id="orb">
+      <div style="font-size:48px;color:rgba(255,255,255,.5);pointer-events:none" id="orbIcon">S</div>
+    </div>
+  </div>
+
+  <div class="vad-bar"><div class="vad-fill" id="vadFill"></div></div>
+
+  <div class="call-info" id="callInfo">
+    <div class="call-timer" id="callTimer"></div>
+    <div class="call-status" id="callStatus">Tap to call</div>
+    <div class="transcript-line" id="transcriptLine"></div>
+  </div>
+
+  <div class="latency" id="latency"></div>
+
+  <button class="end-btn" id="endBtn">End</button>
+</div>
+
+<script>
+const orb = document.getElementById('orb');
+const glow = document.getElementById('glow');
+const ring = document.getElementById('ring');
+const orbIcon = document.getElementById('orbIcon');
+const callTimer = document.getElementById('callTimer');
+const callStatus = document.getElementById('callStatus');
+const transcriptLine = document.getElementById('transcriptLine');
+const vadFill = document.getElementById('vadFill');
+const endBtn = document.getElementById('endBtn');
+
+let ws = null;
+let connected = false;
+let callActive = false;
+let callStartTime = null;
+let timerInterval = null;
+let micStream = null;
+let audioCtx = null;
+let micSource = null;
+let processor = null;
+let vadAnalyser = null;
+
+// Audio playback
+let audioQueue = [];
+let isPlaying = false;
+let playbackCtx = null;
+let playbackAnalyser = null;
+let currentSource = null;
+let animFrame = null;
+
+// — State —
+function setState(state) {
+  orb.className = 'orb ' + state;
+  glow.className = 'orb-glow' + (['live','hearing','speaking'].includes(state) ? ' active' : '');
+  
+  const statusMap = {
+    idle: callActive ? '' : 'Tap to call',
+    live: '',
+    hearing: 'hearing you',
+    thinking: 'thinking',
+    speaking: ''
+  };
+  if (!callActive) {
+    callStatus.textContent = 'Tap to call';
+  } else {
+    callStatus.textContent = statusMap[state] || '';
+  }
+}
+
+// — Timer —
+function startTimer() {
+  callStartTime = Date.now();
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+    const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const s = String(elapsed % 60).padStart(2, '0');
+    callTimer.textContent = m + ':' + s;
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  callTimer.textContent = '';
+  callStartTime = null;
+}
+
+// — Playback —
+async function playNext() {
+  if (audioQueue.length === 0) {
+    isPlaying = false;
+    stopVib();
+    if (callActive) setState('live');
+    return;
+  }
+  isPlaying = true;
+  const data = audioQueue.shift();
+  const blob = new Blob([data], { type: 'audio/wav' });
+  const url = URL.createObjectURL(blob);
+  try {
+    if (!playbackCtx) playbackCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ab = await blob.arrayBuffer();
+    const buf = await playbackCtx.decodeAudioData(ab);
+    currentSource = playbackCtx.createBufferSource();
+    currentSource.buffer = buf;
+    playbackAnalyser = playbackCtx.createAnalyser();
+    playbackAnalyser.fftSize = 256;
+    playbackAnalyser.smoothingTimeConstant = 0.6;
+    currentSource.connect(playbackAnalyser);
+    playbackAnalyser.connect(playbackCtx.destination);
+    currentSource.onended = () => { URL.revokeObjectURL(url); playNext(); };
+    currentSource.start(0);
+    startVib(playbackAnalyser);
+  } catch(e) {
+    console.error('Playback error:', e);
+    URL.revokeObjectURL(url);
+    playNext();
+  }
+}
+
+function stopPlayback() {
+  if (currentSource) { try { currentSource.stop(); } catch(e) {} currentSource = null; }
+  audioQueue = [];
+  isPlaying = false;
+  stopVib();
+}
+
+function startVib(an) {
+  const d = new Uint8Array(an.frequencyBinCount);
+  function f() {
+    an.getByteFrequencyData(d);
+    let s=0,c=0;
+    for(let i=2;i<40;i++){s+=d[i];c++;}
+    const a=s/c/255;
+    orb.style.transform = `scale(${1+a*.08})`;
+    orb.style.boxShadow = `0 2px 24px rgba(200,100,40,${.2+a*.3}),0 0 ${15+a*30}px rgba(230,130,80,${a*.5}),inset 0 1px 0 rgba(255,255,255,.2)`;
+    animFrame = requestAnimationFrame(f);
+  }
+  f();
+}
+
+function stopVib() {
+  if(animFrame) cancelAnimationFrame(animFrame);
+  animFrame = null;
+  orb.style.transform = '';
+  orb.style.boxShadow = '';
+}
+
+// — WebSocket —
+function connect() {
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${protocol}//${location.host}`;
+  ws = new WebSocket(wsUrl);
+  ws.binaryType = 'arraybuffer';
+
+  ws.onopen = () => { connected = true; setState('idle'); };
+  ws.onmessage = async (e) => {
+    if (e.data instanceof ArrayBuffer) {
+      audioQueue.push(e.data);
+      if (!isPlaying) playNext();
+      return;
+    }
+    const msg = JSON.parse(e.data);
+    switch(msg.type) {
+      case 'state':
+        if (msg.state === 'listening' && callActive) setState('live');
+        else if (msg.state === 'hearing') setState('hearing');
+        else if (msg.state === 'thinking') setState('thinking');
+        else setState(msg.state);
+        break;
+      case 'transcript':
+        transcriptLine.innerHTML = `<span class="transcript-line user">"${msg.text}"</span>`;
+        setState('thinking');
+        break;
+      case 'reply':
+        transcriptLine.innerHTML = `<span class="transcript-line">${msg.text}</span>`;
+        break;
+      case 'audio_info':
+        setState('speaking');
+        break;
+      case 'audio_chunk':
+        break;
+      case 'audio_done':
+        break;
+      case 'barge_in':
+        stopPlayback();
+        setState('hearing');
+        break;
+    }
+  };
+  ws.onclose = () => { connected = false; setState('idle'); setTimeout(connect, 2000); };
+  ws.onerror = () => { connected = false; };
+}
+
+// — Mic —
+async function startCall() {
+  if (callActive) return;
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true }
+    });
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+    micSource = audioCtx.createMediaStreamSource(micStream);
+    vadAnalyser = audioCtx.createAnalyser();
+    vadAnalyser.fftSize = 256;
+    micSource.connect(vadAnalyser);
+
+    processor = audioCtx.createScriptProcessor(2048, 1, 1);
+    processor.onaudioprocess = (e) => {
+      if (!callActive || !ws || ws.readyState !== WebSocket.OPEN) return;
+      const f32 = e.inputBuffer.getChannelData(0);
+      // Convert to int16 for compact transport
+      const i16 = new Int16Array(f32.length);
+      for (let i = 0; i < f32.length; i++) {
+        const s = Math.max(-1, Math.min(1, f32[i]));
+        i16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      }
+      ws.send(i16.buffer);
+      updateVad(f32);
+    };
+    micSource.connect(processor);
+    processor.connect(audioCtx.destination);
+
+    callActive = true;
+    startTimer();
+    setState('live');
+    endBtn.classList.add('visible');
+    transcriptLine.innerHTML = '';
+  } catch(e) {
+    callStatus.textContent = 'Mic access denied';
+    console.error(e);
+  }
+}
+
+function endCall() {
+  callActive = false;
+  stopPlayback();
+  stopTimer();
+  if (micStream) micStream.getTracks().forEach(t => t.stop());
+  if (micSource) micSource.disconnect();
+  if (processor) processor.disconnect();
+  if (audioCtx) { audioCtx.close(); audioCtx = null; }
+  micStream = null; micSource = null; processor = null; vadAnalyser = null;
+  setState('idle');
+  endBtn.classList.remove('visible');
+  transcriptLine.innerHTML = '';
+  vadFill.style.width = '0%';
+  callStatus.textContent = 'Tap to call';
+}
+
+function updateVad(samples) {
+  let s = 0;
+  for (let i = 0; i < samples.length; i++) s += samples[i] * samples[i];
+  const rms = Math.sqrt(s / samples.length);
+  vadFill.style.width = Math.min(100, rms / .04 * 100) + '%';
+}
+
+// — Controls —
+orb.addEventListener('click', () => { if (!callActive) startCall(); });
+endBtn.addEventListener('click', endCall);
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && !e.repeat) { e.preventDefault(); if (!callActive) startCall(); }
+});
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); if (callActive) endCall(); }
+});
+
+connect();
+</script>
+</body>
+</html>
