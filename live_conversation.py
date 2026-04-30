@@ -5,9 +5,15 @@ Scarlett Live Conversation — continuous voice flow.
 Architecture:
 - Browser streams mic audio continuously via WebSocket
 - Silero VAD detects speech start/end in real-time
-- On speech end: faster-whisper STT → streaming Ollama LLM → CSM streaming TTS
+- On speech end: faster-whisper STT → streaming Ollama LLM → CSM TTS
 - Audio chunks stream back to browser as generated
 - Barge-in: VAD detects new speech → stop current TTS → process new input
+
+TTS pipeline:
+- CSM (Sesame CSM 1B) is the primary TTS engine for all speech
+- Short filler ("Hmm.") via /generate, full sentences via /generate_full
+- Sentence-level streaming: each LLM sentence is generated + played as it arrives
+- Kokoro is the fallback if the CSM server is down
 
 No tap-to-talk. Mic stays on. Scarlett listens, thinks, speaks — continuously.
 """
@@ -27,10 +33,15 @@ from websockets.http import Headers
 # Add receptionist dir to path for tts module
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# RAG imports
+import mcp_client
+from prompt import build_context, build_prompt
+
 # --- Config ---
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
-OLLAMA_MODEL = "glm-5.1:cloud"
+OLLAMA_MODEL = "gemma4:e4b"
 CSM_SERVER_URL = "http://127.0.0.1:8766/generate"
+CSM_FULL_URL = "http://127.0.0.1:8766/generate_full"
 STT_MODEL_SIZE = "small"
 SYSTEM_PROMPT = """You are Scarlett, a warm and thoughtful companion. You help people find information from the knowledge base, but you speak like someone who genuinely cares — not like a search engine with manners. Be present, be curious, connect ideas naturally. Answer concisely — 1-3 sentences. You're speaking aloud, not writing essays."""
 
@@ -184,13 +195,27 @@ async def stream_llm(text, on_sentence=None):
 
 
 # --- TTS ---
-async def generate_csm_sentence(text):
-    """Generate audio via CSM filler server."""
+async def generate_csm_audio(text, is_filler=False, max_audio_ms=None):
+    """Generate audio via CSM server.
+
+    Uses /generate for short filler phrases (max 5s audio),
+    /generate_full for longer LLM sentences (max 20s audio).
+    Returns raw WAV bytes, or None on failure.
+    """
     try:
         import urllib.request
+        if is_filler:
+            url = CSM_SERVER_URL
+            if max_audio_ms is None:
+                max_audio_ms = 5000
+        else:
+            url = CSM_FULL_URL
+            if max_audio_ms is None:
+                max_audio_ms = 20000
+
         req = urllib.request.Request(
-            CSM_SERVER_URL,
-            data=json.dumps({"text": text, "max_audio_length_ms": 3000}).encode(),
+            url,
+            data=json.dumps({"text": text, "max_audio_length_ms": max_audio_ms}).encode(),
             headers={"Content-Type": "application/json"},
             method="POST"
         )
@@ -198,28 +223,13 @@ async def generate_csm_sentence(text):
         wav_data = resp.read()
         gen_time = float(resp.headers.get("X-Gen-Time", "0"))
         audio_dur = float(resp.headers.get("X-Audio-Duration", "0"))
-        print(f"  🎵 CSM: '{text[:40]}' gen={gen_time:.2f}s audio={audio_dur:.2f}s")
+        rtf = float(resp.headers.get("X-RTF", "0"))
+        label = "FILLER" if is_filler else "FULL"
+        print(f"  🎵 CSM [{label}]: '{text[:40]}' gen={gen_time:.2f}s audio={audio_dur:.2f}s RTF={rtf:.2f}")
         return wav_data
     except Exception as e:
         print(f"  ❌ CSM error: {e}")
         return None
-
-
-async def generate_qwen3_sentence(text, lang="en"):
-    """Generate audio via Qwen3-TTS Scarlett."""
-    import tts as tts_engine
-    try:
-        path = await asyncio.to_thread(
-            tts_engine.generate_voice, text, lang, None, 0.9
-        )
-        if path and os.path.exists(path):
-            with open(path, 'rb') as f:
-                data = f.read()
-            os.unlink(path)
-            return data
-    except Exception as e:
-        print(f"  ❌ Qwen3-TTS error: {e}")
-    return None
 
 
 # --- WebSocket handler ---
@@ -320,8 +330,37 @@ async def process_utterance(websocket, audio_data, vad):
         }))
         print(f"  📝 STT: '{transcript}' ({stt_time:.2f}s)")
 
+        # RAG Search — find relevant knowledge
+        rag_t0 = time.time()
+        results = []
+        try:
+            results = await asyncio.to_thread(mcp_client.search, transcript)
+            print(f"  🔍 RAG: {len(results)} results ({time.time()-rag_t0:.2f}s)")
+
+            # Send constellation nodes to frontend
+            node_results = []
+            for r in results:
+                snippet = r.get("content", "")
+                if len(snippet) > 180:
+                    snippet = snippet[:180] + "..."
+                node_results.append({
+                    "path": r.get("path", ""),
+                    "score": r.get("score", 0),
+                    "snippet": snippet
+                })
+            await websocket.send(json.dumps({
+                "type": "nodes",
+                "results": node_results
+            }))
+        except Exception as e:
+            print(f"  ❌ RAG error: {e}")
+
+        # Build grounded prompt with knowledge context
+        context = build_context(results) if results else ""
+        _, grounded_prompt = build_prompt(transcript, context)
+
         # CSM Filler (instant) — keep short (3s max audio)
-        filler_task = asyncio.create_task(generate_csm_sentence("Hmm."))
+        filler_task = asyncio.create_task(generate_csm_audio("Hmm.", is_filler=True))
         tts_cancel = False
 
         # Send filler
@@ -347,11 +386,12 @@ async def process_utterance(websocket, audio_data, vad):
         async def on_llm_sentence(sentence):
             if tts_cancel:
                 return
-            audio_data = await generate_qwen3_sentence(sentence, "en")
+            # CSM is primary TTS — generates each sentence as it arrives from the LLM
+            audio_data = await generate_csm_audio(sentence, is_filler=False)
             if audio_data and not tts_cancel:
                 await audio_queue.put({"audio": audio_data, "text": sentence})
 
-        llm_task = asyncio.create_task(stream_llm(transcript, on_sentence=on_llm_sentence))
+        llm_task = asyncio.create_task(stream_llm(grounded_prompt, on_sentence=on_llm_sentence))
 
         # Stream TTS chunks
         llm_done = False

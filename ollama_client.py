@@ -18,6 +18,9 @@ def generate(prompt, system=None, temperature=0.1, max_tokens=1024):
         "model": OLLAMA_MODEL,
         "messages": messages,
         "stream": False,
+        # Qwen thinking models otherwise spend the whole budget in hidden reasoning
+        # and return empty content for short API calls.
+        "think": False,
         "options": {
             "temperature": temperature,
             "num_predict": max_tokens,

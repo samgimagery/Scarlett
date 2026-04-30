@@ -36,7 +36,15 @@ BASE_MODEL = os.path.expanduser("~/.cache/huggingface/hub/models--mlx-community-
 SCARLETT_VOICE_REF = os.path.expanduser("~/Media/voices/scarlett_reference_short.wav")
 SCARLETT_VOICE_REF_TEXT = "Why? I wouldn't say anything about it even if I fell off the top of the house."
 
-# Old HER reference (12s) — kept for French zero-shot fallback only
+# French Canadian candidate reference for local one-shot testing.
+# This is the preferred FR voice path when present; keep rights/consent clear before production use.
+FR_CA_VOICE_REF = os.path.expanduser(os.environ.get(
+    "SCARLETT_FR_CA_VOICE_REF",
+    "~/Media/voices/scarlett_fr_ca_candidates/candidate_05_ref_12s.wav"
+))
+FR_CA_VOICE_REF_TEXT = os.environ.get("SCARLETT_FR_CA_VOICE_REF_TEXT", "")
+
+# Old HER reference (12s) — kept for fallback only, not preferred for French.
 HER_VOICE_REF = os.path.expanduser("~/Media/voices/her_reference_10s.wav")
 HER_VOICE_REF_TEXT = "Earlier I was thinking about how I was annoyed, and it's gonna sound strange."
 
@@ -775,32 +783,32 @@ def generate_csm_filler(text=None, lang="en"):
 
 def generate_csm_streaming(text, lang="en", speaker=0, context=None):
     """Generate full audio using CSM with streaming chunk delivery.
-    
+
     Uses csm-mlx's stream_generate() for real-time chunk output.
     Falls back to non-streaming generate() if streaming fails.
-    
+
     Args:
         text: Text to speak
         lang: Language code (CSM is English-only)
         speaker: Speaker ID (0 = random speaker)
         context: List of Segment objects for conversation history
-    
+
     Returns:
         Path to generated WAV file, or None if generation fails
     """
     if not CSM_MODEL_AVAILABLE:
         logger.warning("CSM not available")
         return None
-    
+
     if lang != "en":
         logger.info("CSM skipped for non-English")
         return None
-    
+
     context = context or []
     output_dir = os.path.expanduser("~/Media/voices/tmp")
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, f"csm_full_{int(time.time() * 1000)}.wav")
-    
+
     script = (
         'import sys\n'
         'sys.path.insert(0, "' + os.path.expanduser('~/AI/OpenClaw/dev/csm-env/lib/python3.12/site-packages') + '")\n'
@@ -827,7 +835,7 @@ def generate_csm_streaming(text, lang="en", speaker=0, context=None):
         'audiofile.write(' + repr(output_path) + ', np.asarray(audio), 24000)\n'
         'print(f"CSM full: load={load_time:.2f}s gen={gen_time:.2f}s audio={duration:.2f}s RTF={gen_time/duration:.3f}")\n'
     )
-    
+
     try:
         import subprocess as _sp
         result = _sp.run(
@@ -837,17 +845,73 @@ def generate_csm_streaming(text, lang="en", speaker=0, context=None):
         if result.returncode != 0:
             logger.error(f"CSM generation failed: {result.stderr[-200:]}")
             return None
-        
+
         if os.path.exists(output_path):
             logger.info(f"CSM generated: {output_path}")
             return output_path
         else:
             logger.error("CSM: output file not created")
             return None
-            
+
     except Exception as e:
         logger.error(f"CSM generation error: {e}")
         return None
+
+
+def generate_csm_full(text, lang="en", max_audio_ms=20000):
+    """Generate audio for full sentences using CSM server.
+
+    Uses the /generate_full endpoint on the CSM server (port 8766) which
+    supports longer text with higher max_audio_length_ms. Falls back to
+    Kokoro if the CSM server is unavailable.
+
+    This is the primary TTS path for streaming conversation — CSM generates
+    each sentence as the LLM streams it, with ~0.48x RTF (bf16) on short
+    phrases and ~0.88x on medium ones.
+
+    Args:
+        text: Text to speak
+        lang: Language code (CSM is English-only, FR falls back to Kokoro)
+        max_audio_ms: Max audio length in ms (default 20000 for full sentences)
+
+    Returns:
+        Path to generated WAV file, or None if generation fails
+    """
+    if lang != "en":
+        logger.info("CSM full skipped for non-English, using Kokoro")
+        return _generate_kokoro(text, lang, "af_bella", 0.9)
+
+    output_dir = os.path.expanduser("~/Media/voices/tmp")
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, f"csm_full_{int(time.time() * 1000)}.wav")
+
+    # --- Try CSM server first (persistent, model already loaded) ---
+    try:
+        import urllib.request
+        t0 = time.time()
+        req = urllib.request.Request(
+            "http://127.0.0.1:8766/generate_full",
+            data=json.dumps({"text": text, "max_audio_length_ms": max_audio_ms}).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+        resp = urllib.request.urlopen(req, timeout=30)
+        gen_time = float(resp.headers.get("X-Gen-Time", "0"))
+        audio_dur = float(resp.headers.get("X-Audio-Duration", "0"))
+        rtf = float(resp.headers.get("X-RTF", "0"))
+        wav_data = resp.read()
+
+        if wav_data:
+            with open(output_path, "wb") as f:
+                f.write(wav_data)
+            logger.info(f"CSM full via server: gen={gen_time:.2f}s audio={audio_dur:.2f}s RTF={rtf:.2f}")
+            return output_path
+    except Exception as e:
+        logger.debug(f"CSM server not available for full gen ({e}), falling back to Kokoro")
+
+    # --- Fallback: Kokoro ---
+    logger.info("CSM full: falling back to Kokoro")
+    return _generate_kokoro(text, lang, "af_bella", 0.9)
 
 
 def generate_voice_with_filler(text, lang="en", voice=None, speed=0.9):
@@ -911,9 +975,20 @@ VOICES = {
 }
 
 def get_default_voice(lang="en"):
-    """Get the default voice for a language.
-    
-    Fine-tuned HER model is now active for English.
-    French uses zero-shot clone or Kokoro fallback.
-    """
+    """Get the default non-cloned preset voice for a language."""
     return "af_bella" if lang == "en" else "bf_alice"
+
+def generate_fast_voice(text, lang="en", voice=None, speed=0.95):
+    """Generate voice for bot replies.
+
+    French uses the local fr-CA candidate one-shot reference when available so
+    Scarlett sounds closer to the target receptionist voice. Other languages
+    keep the fast local preset path.
+    """
+    if not text or not text.strip():
+        return None
+    text = _truncate_text(text)
+    if lang == "fr" and os.path.isfile(FR_CA_VOICE_REF):
+        return _generate_qwen3_clone(text, FR_CA_VOICE_REF, lang, FR_CA_VOICE_REF_TEXT or None)
+    voice = voice or get_default_voice(lang)
+    return _generate_kokoro(text, lang, voice, speed)

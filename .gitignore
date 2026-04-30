@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+.env.*
+
+# Runtime data
+*.db
+*.sqlite
+*.sqlite3
+logs.db
+*.log
+/tmp/
+tmp/
+
+# Secrets / local config
+*.local
+*.secret
+secrets.*
+.envrc
+
+# Media / generated artifacts
+*.wav
+*.mp3
+*.m4a
+*.ogg
+*.oga
+*.aifc
+*.mp4
+*.mov
+*.webm
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# macOS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Backups / scratch
+*.backup
+*.bak
+*.tmp
