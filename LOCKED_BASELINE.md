@@ -70,3 +70,14 @@ Health:
 ```bash
 curl -s http://127.0.0.1:8000/health
 ```
+
+## GitHub Record
+
+Night wrap confirmation, 2026-04-30:
+
+- GitHub repo: `https://github.com/samgimagery/Scarlett`
+- Branch: `main`
+- Locked commit: `63e23b8 Lock AMS receptionist baseline`
+- Branch status at wrap: aligned with `origin/main`
+
+Experimental Gemini Live / voice files may exist locally from earlier exploration. They are not part of the locked AMS receptionist baseline unless explicitly reintroduced later.

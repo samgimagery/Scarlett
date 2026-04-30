@@ -227,3 +227,26 @@ Package as:
 - human approval workflow before website changes update the active truth
 
 AMS is the locked baseline for “correct receptionist behaviour,” especially the service flow: answer, discover, connect course features to benefits, then offer the right next step.
+
+## Locked GitHub Baseline
+
+As of the 2026-04-30 night wrap, the AMS receptionist baseline is committed and pushed to GitHub:
+
+- Repository: `https://github.com/samgimagery/Scarlett`
+- Branch: `main`
+- Locked baseline commit: `63e23b8 Lock AMS receptionist baseline`
+- Runtime mode: Telegram chat-only
+- Voice/Gemini Live experiments: parked; not part of the locked AMS production path
+
+The locked baseline includes:
+
+- deterministic pricing and financing layer
+- deterministic campus/location layer
+- deterministic à-la-carte/continuing-ed layer
+- conversation-state handling for short affirmations
+- signup-button gating
+- AMS service-flow prompt rules
+- Smart Connections/local fallback retrieval
+- Telegram-safe formatting
+
+Do not move Scarlett back to voice-first or Gemini Live without a new explicit product decision. The correct current product is the written Telegram receptionist.

@@ -46,3 +46,13 @@ secrets.*
 *.backup
 *.bak
 *.tmp
+
+# Parked local voice / Gemini Live experiments (not locked AMS baseline)
+gemini_live*.py
+gemini_live*.html
+gemini_live*.backup-*
+gemini_live_test.py
+telegram_bot_gemini.py
+csm_streaming_server.py
+latency_profiler.py
+live_conversation_v2.py
