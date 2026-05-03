@@ -1,0 +1,11 @@
+customer_id: example_customer
+business_name: Example Business
+domain: https://example.com
+languages:
+  - en
+channels:
+  telegram: false
+  web_chat: false
+  voice: false
+vault_path: customers/example_customer/vault
+status: draft

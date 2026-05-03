@@ -12,6 +12,9 @@ import requests
 import logging
 import html
 import shutil
+import json
+import glob
+from pathlib import Path
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
@@ -23,6 +26,82 @@ logger = logging.getLogger(__name__)
 
 INSCRIPTION_URL = "https://www.academiedemassage.com/inscription/"
 CONTACT_URL = "https://www.academiedemassage.com/contact/"
+
+
+STUDIO_COUNCIL_CHAT_ID = os.environ.get("STUDIO_COUNCIL_CHAT_ID", "-1003527002328")
+OPENCLAW_SESSION_GLOB = os.path.expanduser("~/.openclaw/agents/main/sessions/*.jsonl")
+
+def _text_from_message_content(content) -> str:
+    if isinstance(content, str):
+        return content.strip()
+    if isinstance(content, list):
+        parts = []
+        for item in content:
+            if isinstance(item, dict) and item.get("type") == "text":
+                txt = item.get("text") or ""
+                if txt:
+                    parts.append(txt)
+        return "\n".join(parts).strip()
+    return ""
+
+def _latest_council_transcript(chat_id: str) -> Path | None:
+    markers = [
+        f'"chat_id": "telegram:{chat_id}"',
+        f'\\"chat_id\\": \\"telegram:{chat_id}\\"',
+        f'Studio Council id:{chat_id}',
+    ]
+    candidates = sorted((Path(p) for p in glob.glob(OPENCLAW_SESSION_GLOB)), key=lambda x: x.stat().st_mtime if x.exists() else 0, reverse=True)
+    for path in candidates[:80]:
+        try:
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            if any(marker in text for marker in markers):
+                return path
+        except Exception:
+            continue
+    return None
+
+def _studio_council_context(chat_id: int | str, max_turns: int = 8) -> str:
+    """Bridge Council context from OpenClaw's existing transcript.
+
+    Telegram Bot API does not deliver bot messages to other bots, so Scarlett cannot
+    see Alfred directly in the group. This reads the already-existing OpenClaw
+    transcript on demand; no extra daemon or parent process.
+    """
+    chat_id = str(chat_id)
+    if chat_id != STUDIO_COUNCIL_CHAT_ID:
+        return ""
+    transcript = _latest_council_transcript(chat_id)
+    if not transcript:
+        return ""
+    turns = []
+    try:
+        for line in transcript.read_text(encoding="utf-8", errors="ignore").splitlines():
+            try:
+                row = json.loads(line)
+            except Exception:
+                continue
+            if row.get("type") != "message":
+                continue
+            msg = row.get("message") or {}
+            role = msg.get("role")
+            text = _text_from_message_content(msg.get("content"))
+            if not text or text == "NO_REPLY":
+                continue
+            if role == "user":
+                speaker = "Sam"
+            elif role == "assistant":
+                speaker = "Alfred"
+            else:
+                continue
+            # Keep Council bridge small and factual.
+            turns.append(f"{speaker}: {text[:700]}")
+    except Exception as e:
+        logger.warning(f"Council bridge read failed: {e}")
+        return ""
+    if not turns:
+        return ""
+    recent = turns[-max_turns:]
+    return "Contexte récent du Studio Council (inclut Alfred; Telegram ne livre pas les messages bot-à-bot):\n" + "\n".join(f"- {t}" for t in recent)
 
 # --- Voice memo transcription ---
 _stt_model = None
@@ -462,11 +541,17 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Show typing while we query RAG
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
         
+        conv_parts = []
         conv_ctx = _conversation_context(context.user_data)
+        if conv_ctx:
+            conv_parts.append(conv_ctx)
+        council_ctx = _studio_council_context(update.effective_chat.id)
+        if council_ctx:
+            conv_parts.append(council_ctx)
         question_for_rag = _expand_followup_question(context.user_data, question)
         payload = {"question": question_for_rag, "language": lang}
-        if conv_ctx:
-            payload["conversation_context"] = conv_ctx
+        if conv_parts:
+            payload["conversation_context"] = "\n\n".join(conv_parts)
         resp = requests.post(
             f"{RAG_SERVICE_URL}/ask",
             json=payload,

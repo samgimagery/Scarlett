@@ -1,0 +1,10 @@
+{"id":"single_yes_expanded","category":"micro","text":"Yes, that's right.","voice":"tara"}
+{"id":"single_no_expanded","category":"micro","text":"No, not quite.","voice":"tara"}
+{"id":"filler_check","category":"filler","text":"Let me check that for you.","voice":"tara"}
+{"id":"filler_looking","category":"filler","text":"I'm looking now.","voice":"tara"}
+{"id":"name_samuel","category":"names","text":"Samuel Gaudreau, I found it.","voice":"tara"}
+{"id":"fr_ca_greeting","category":"fr_ca","text":"Bonjour Samuel, je regarde ça tout de suite.","voice":"tara"}
+{"id":"fr_ca_course","category":"fr_ca","text":"Le programme de massothérapie commence par le niveau un.","voice":"tara"}
+{"id":"rag_first_clause","category":"rag_stream","text":"I found the appointment policy.","voice":"tara"}
+{"id":"correction","category":"repair","text":"Actually, wait — I found the newer note.","voice":"tara"}
+{"id":"emotion_chuckle","category":"emotion","text":"<chuckle> Yes, that makes sense.","voice":"tara"}

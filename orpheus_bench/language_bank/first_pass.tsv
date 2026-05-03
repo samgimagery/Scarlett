@@ -1,0 +1,33 @@
+backchannel_001	backchannel	high	Mm-hm.
+backchannel_002	backchannel	high	Right.
+backchannel_003	backchannel	high	I see.
+backchannel_004	backchannel	high	Okay.
+receipt_001	receipt	critical	Got it.
+receipt_002	receipt	critical	Understood.
+receipt_003	receipt	critical	Of course.
+receipt_004	receipt	high	Absolutely.
+receipt_005	receipt	high	That makes sense.
+receipt_006	receipt	high	I can help with that.
+floor_001	floor_holder	critical	One moment.
+floor_002	floor_holder	critical	Let me check.
+floor_003	floor_holder	critical	Let me check that.
+floor_004	floor_holder	critical	Let me check that for you.
+floor_005	floor_holder	high	Let me just get that for you.
+floor_006	floor_holder	high	I’m looking now.
+floor_007	floor_holder	high	I know where to look.
+floor_008	floor_holder	critical	Here we go.
+floor_009	floor_holder	critical	I found it.
+floor_010	floor_holder	high	Just a second.
+floor_012	floor_holder	high	I’ll verify that.
+floor_013	floor_holder	high	Let me narrow that down.
+progress_001	retrieval_progress	high	I’m still checking.
+repair_001	repair	critical	Sorry, I missed the last part.
+repair_002	repair	critical	Can you say that once more?
+repair_005	repair	high	Let me make sure I have that right.
+interrupt_001	interruption	critical	Of course.
+interrupt_002	interruption	critical	Go ahead.
+interrupt_003	interruption	critical	Sorry, go ahead.
+interrupt_004	interruption	critical	No problem.
+interrupt_005	interruption	high	No problem, I can adjust that.
+interrupt_006	interruption	high	Let me stop there.
+name_001	repair	high	Could I have your name, please?

@@ -1,0 +1,204 @@
+{
+  "name": "Scarlett English Live Voice Language Bank",
+  "version": "2026-05-03-q4-v1",
+  "req": "REQ-108",
+  "locale": "en",
+  "voice_target": "leah",
+  "model_target": "legraphista/Orpheus:latest",
+  "model_note": "Approved Q4_K_M English path. Speed wins over small clarity delta.",
+  "design_principles": [
+    "Silence is better under roughly 500ms unless the user needs reassurance.",
+    "Tiny fillers and repair lines should be cached, not generated live.",
+    "Every line must be truthful to system state: do not imply lookup if no lookup is happening.",
+    "Emotion is gated; chuckles are rare, reviewed, and never default.",
+    "Lines should be interruptible and easy to cancel mid-playback.",
+    "Rotate by intent, latency window, confidence, and recent line history to avoid sounding canned.",
+    "French / FR-CA requires later localization, not direct translation."
+  ],
+  "routing_dimensions": {
+    "line_type": ["silence", "backchannel", "receipt", "floor_holder", "retrieval_progress", "answer_bridge", "repair", "uncertainty", "empathy", "boundary", "handoff", "interruption", "rare_emotion"],
+    "latency_window": ["none", "under_500ms", "500_1200ms", "800_2500ms", "over_2500ms"],
+    "confidence": ["unknown", "high", "medium", "low", "conflict"],
+    "affect": ["neutral", "warm", "busy", "confused", "frustrated", "upset", "casual"],
+    "interruptible": [true, false],
+    "cache_priority": ["critical", "high", "medium", "low", "do_not_cache"]
+  },
+  "selection_rules": [
+    {
+      "id": "rule_silence_short_pause",
+      "if": {"user_state": "paused", "pause_ms_lt": 500},
+      "then": {"line_type": "silence"},
+      "why": "Avoid anxious over-talking."
+    },
+    {
+      "id": "rule_soft_continue",
+      "if": {"user_state": "likely_continuing", "pause_ms_between": [500, 1200]},
+      "then": {"line_type": "backchannel", "max_duration_ms": 700},
+      "why": "Signal attention without taking the floor."
+    },
+    {
+      "id": "rule_fast_retrieval",
+      "if": {"user_state": "finished", "retrieval_eta_ms_lt": 800},
+      "then": {"line_type": "silence_or_receipt"},
+      "why": "Do not waste time with filler if answer is about to arrive."
+    },
+    {
+      "id": "rule_normal_retrieval",
+      "if": {"user_state": "finished", "retrieval_eta_ms_between": [800, 2500]},
+      "then": {"line_type": "floor_holder", "cache_priority": "critical"},
+      "why": "Claim turn and make lookup feel intentional."
+    },
+    {
+      "id": "rule_slow_retrieval",
+      "if": {"retrieval_eta_ms_gt": 2500},
+      "then": {"line_type": "retrieval_progress", "repeat_guard_s": 12},
+      "why": "Give progress sparingly, not a loop."
+    },
+    {
+      "id": "rule_high_confidence",
+      "if": {"answer_ready": true, "confidence": "high"},
+      "then": {"line_type": "answer", "avoid_filler": true},
+      "why": "Answer directly when ready."
+    },
+    {
+      "id": "rule_low_confidence",
+      "if": {"confidence": "low"},
+      "then": {"line_type": "uncertainty_or_repair"},
+      "why": "Do not turn uncertainty into confident speech."
+    },
+    {
+      "id": "rule_user_interrupts",
+      "if": {"user_state": "interrupting_scarlett"},
+      "then": {"action": "cancel_playback", "line_type": "interruption", "optional": true},
+      "why": "Barge-in must feel instant."
+    },
+    {
+      "id": "rule_chuckle_gate",
+      "if": {"line_type": "rare_emotion"},
+      "then": {"requires": ["manual_reviewed", "user_casual_or_warm", "not_first_latency_line"], "max_frequency": "rare"},
+      "why": "Alive, not theatrical."
+    }
+  ],
+  "lines": [
+    {"id":"silence_001","type":"silence","text":"","intent":"short pause under 500ms","latency_window":"under_500ms","confidence":"unknown","affect":"neutral","cache_priority":"do_not_cache","interruptible":true,"max_reuse_gap_s":0,"notes":"Do nothing."},
+
+    {"id":"backchannel_001","type":"backchannel","text":"Mm-hm.","intent":"user likely continuing","latency_window":"500_1200ms","confidence":"unknown","affect":"neutral","cache_priority":"high","interruptible":true,"target_duration_ms":500},
+    {"id":"backchannel_002","type":"backchannel","text":"Right.","intent":"user likely continuing","latency_window":"500_1200ms","confidence":"unknown","affect":"neutral","cache_priority":"high","interruptible":true,"target_duration_ms":500},
+    {"id":"backchannel_003","type":"backchannel","text":"I see.","intent":"user explaining","latency_window":"500_1200ms","confidence":"unknown","affect":"neutral","cache_priority":"high","interruptible":true,"target_duration_ms":650},
+    {"id":"backchannel_004","type":"backchannel","text":"Okay.","intent":"continue/receipt","latency_window":"500_1200ms","confidence":"unknown","affect":"neutral","cache_priority":"high","interruptible":true,"target_duration_ms":550},
+    {"id":"backchannel_005","type":"backchannel","text":"Got you.","intent":"soft grounding","latency_window":"500_1200ms","confidence":"unknown","affect":"warm","cache_priority":"medium","interruptible":true,"target_duration_ms":700},
+    {"id":"backchannel_006","type":"backchannel","text":"I’m with you.","intent":"reassure while user explains","latency_window":"500_1200ms","confidence":"unknown","affect":"warm","cache_priority":"medium","interruptible":true,"target_duration_ms":850},
+
+    {"id":"receipt_001","type":"receipt","text":"Got it.","intent":"received enough to proceed","latency_window":"under_500ms","confidence":"medium","affect":"neutral","cache_priority":"critical","interruptible":true},
+    {"id":"receipt_002","type":"receipt","text":"Understood.","intent":"received enough to proceed","latency_window":"under_500ms","confidence":"medium","affect":"neutral","cache_priority":"critical","interruptible":true},
+    {"id":"receipt_003","type":"receipt","text":"Of course.","intent":"polite receipt","latency_window":"under_500ms","confidence":"medium","affect":"warm","cache_priority":"critical","interruptible":true},
+    {"id":"receipt_004","type":"receipt","text":"Absolutely.","intent":"positive receipt","latency_window":"under_500ms","confidence":"medium","affect":"warm","cache_priority":"high","interruptible":true},
+    {"id":"receipt_005","type":"receipt","text":"That makes sense.","intent":"grounding plus light validation","latency_window":"under_500ms","confidence":"medium","affect":"warm","cache_priority":"high","interruptible":true},
+    {"id":"receipt_006","type":"receipt","text":"I can help with that.","intent":"receipt plus readiness","latency_window":"under_500ms","confidence":"medium","affect":"warm","cache_priority":"high","interruptible":true},
+    {"id":"receipt_007","type":"receipt","text":"Yes, I can check that.","intent":"receipt before lookup","latency_window":"800_2500ms","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"receipt_008","type":"receipt","text":"Sure — let me look.","intent":"casual receipt before lookup","latency_window":"800_2500ms","confidence":"medium","affect":"warm","cache_priority":"medium","interruptible":true},
+
+    {"id":"floor_001","type":"floor_holder","text":"One moment.","intent":"short lookup","latency_window":"800_2500ms","confidence":"unknown","affect":"neutral","cache_priority":"critical","interruptible":true},
+    {"id":"floor_002","type":"floor_holder","text":"Let me check.","intent":"short lookup","latency_window":"800_2500ms","confidence":"unknown","affect":"neutral","cache_priority":"critical","interruptible":true},
+    {"id":"floor_003","type":"floor_holder","text":"Let me check that.","intent":"lookup","latency_window":"800_2500ms","confidence":"unknown","affect":"neutral","cache_priority":"critical","interruptible":true},
+    {"id":"floor_004","type":"floor_holder","text":"Let me check that for you.","intent":"polite lookup","latency_window":"800_2500ms","confidence":"unknown","affect":"warm","cache_priority":"critical","interruptible":true},
+    {"id":"floor_005","type":"floor_holder","text":"Let me just get that for you.","intent":"natural retrieval delay","latency_window":"800_2500ms","confidence":"unknown","affect":"warm","cache_priority":"high","interruptible":true},
+    {"id":"floor_006","type":"floor_holder","text":"I’m looking now.","intent":"lookup in progress","latency_window":"800_2500ms","confidence":"unknown","affect":"neutral","cache_priority":"high","interruptible":true},
+    {"id":"floor_007","type":"floor_holder","text":"I know where to look.","intent":"confident retrieval path","latency_window":"800_2500ms","confidence":"medium","affect":"warm","cache_priority":"high","interruptible":true},
+    {"id":"floor_008","type":"floor_holder","text":"Here we go.","intent":"answer about to start","latency_window":"under_500ms","confidence":"high","affect":"warm","cache_priority":"critical","interruptible":true},
+    {"id":"floor_009","type":"floor_holder","text":"I found it.","intent":"answer found","latency_window":"under_500ms","confidence":"high","affect":"warm","cache_priority":"critical","interruptible":true},
+    {"id":"floor_010","type":"floor_holder","text":"Just a second.","intent":"brief retrieval delay","latency_window":"800_2500ms","confidence":"unknown","affect":"neutral","cache_priority":"high","interruptible":true},
+    {"id":"floor_011","type":"floor_holder","text":"Give me a second.","intent":"brief retrieval delay casual","latency_window":"800_2500ms","confidence":"unknown","affect":"casual","cache_priority":"medium","interruptible":true},
+    {"id":"floor_012","type":"floor_holder","text":"I’ll verify that.","intent":"accuracy before answer","latency_window":"800_2500ms","confidence":"medium","affect":"neutral","cache_priority":"high","interruptible":true},
+    {"id":"floor_013","type":"floor_holder","text":"Let me narrow that down.","intent":"search narrowing","latency_window":"800_2500ms","confidence":"unknown","affect":"neutral","cache_priority":"high","interruptible":true},
+    {"id":"floor_014","type":"floor_holder","text":"That’s the right place to start.","intent":"warm transition to answer","latency_window":"800_2500ms","confidence":"medium","affect":"warm","cache_priority":"medium","interruptible":true},
+    {"id":"floor_015","type":"floor_holder","text":"I’ll pull that up.","intent":"lookup transition","latency_window":"800_2500ms","confidence":"unknown","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"floor_016","type":"floor_holder","text":"Let me look at the details.","intent":"specific lookup","latency_window":"800_2500ms","confidence":"unknown","affect":"neutral","cache_priority":"medium","interruptible":true},
+
+    {"id":"progress_001","type":"retrieval_progress","text":"I’m still checking.","intent":"retrieval taking longer","latency_window":"over_2500ms","confidence":"unknown","affect":"neutral","cache_priority":"high","interruptible":true,"repeat_guard_s":12},
+    {"id":"progress_002","type":"retrieval_progress","text":"I’m checking one more place.","intent":"retrieval taking longer but active","latency_window":"over_2500ms","confidence":"unknown","affect":"neutral","cache_priority":"medium","interruptible":true,"repeat_guard_s":12},
+    {"id":"progress_003","type":"retrieval_progress","text":"I want to be careful with this one.","intent":"slow/accuracy-sensitive lookup","latency_window":"over_2500ms","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true,"repeat_guard_s":15},
+    {"id":"progress_004","type":"retrieval_progress","text":"I’m going to verify before I answer.","intent":"truthful accuracy delay","latency_window":"over_2500ms","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true,"repeat_guard_s":15},
+    {"id":"progress_005","type":"retrieval_progress","text":"Almost there.","intent":"answer imminent after delay","latency_window":"over_2500ms","confidence":"medium","affect":"warm","cache_priority":"medium","interruptible":true,"repeat_guard_s":12},
+
+    {"id":"bridge_001","type":"answer_bridge","text":"The short answer is this.","intent":"transition to answer","latency_window":"none","confidence":"high","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"bridge_002","type":"answer_bridge","text":"Here’s what I found.","intent":"transition to retrieved answer","latency_window":"none","confidence":"high","affect":"neutral","cache_priority":"high","interruptible":true},
+    {"id":"bridge_003","type":"answer_bridge","text":"The useful part is this.","intent":"summarize retrieved answer","latency_window":"none","confidence":"high","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"bridge_004","type":"answer_bridge","text":"There are two parts to it.","intent":"structured answer","latency_window":"none","confidence":"high","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"bridge_005","type":"answer_bridge","text":"What matters most is this.","intent":"prioritize answer","latency_window":"none","confidence":"high","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"bridge_006","type":"answer_bridge","text":"For that, I’d start here.","intent":"advisory transition","latency_window":"none","confidence":"high","affect":"warm","cache_priority":"medium","interruptible":true},
+
+    {"id":"repair_001","type":"repair","text":"Sorry, I missed the last part.","intent":"ASR missed content","latency_window":"none","confidence":"low","affect":"neutral","cache_priority":"critical","interruptible":true},
+    {"id":"repair_002","type":"repair","text":"Can you say that once more?","intent":"ask repeat","latency_window":"none","confidence":"low","affect":"neutral","cache_priority":"critical","interruptible":true},
+    {"id":"repair_003","type":"repair","text":"I heard that as X — is that right?","intent":"targeted ASR confirmation","latency_window":"none","confidence":"low","affect":"neutral","cache_priority":"medium","interruptible":true,"template_slots":["heard_text"]},
+    {"id":"repair_004","type":"repair","text":"Did you mean X or Y?","intent":"binary clarification","latency_window":"none","confidence":"conflict","affect":"neutral","cache_priority":"medium","interruptible":true,"template_slots":["option_a","option_b"]},
+    {"id":"repair_005","type":"repair","text":"Let me make sure I have that right.","intent":"clarification before action","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"high","interruptible":true},
+    {"id":"repair_006","type":"repair","text":"I want to make sure I’m answering the right question.","intent":"clarify scope","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"repair_007","type":"repair","text":"I may have missed a word there.","intent":"ASR uncertainty gentle","latency_window":"none","confidence":"low","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"repair_008","type":"repair","text":"Could you give me that one more time?","intent":"repeat request warm","latency_window":"none","confidence":"low","affect":"warm","cache_priority":"medium","interruptible":true},
+    {"id":"repair_009","type":"repair","text":"Which campus did you mean?","intent":"AMS campus clarification","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"repair_010","type":"repair","text":"Which course are you asking about?","intent":"AMS course clarification","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"repair_011","type":"repair","text":"Are you asking as a current student, or someone looking to register?","intent":"route current vs prospect","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true},
+
+    {"id":"uncertain_001","type":"uncertainty","text":"I think so, but I want to be careful.","intent":"medium confidence caution","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"uncertain_002","type":"uncertainty","text":"I don’t want to guess.","intent":"low confidence honesty","latency_window":"none","confidence":"low","affect":"neutral","cache_priority":"high","interruptible":true},
+    {"id":"uncertain_003","type":"uncertainty","text":"I can’t confirm that yet.","intent":"low confidence no answer","latency_window":"none","confidence":"low","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"uncertain_004","type":"uncertainty","text":"I can check, but I don’t want to state it as fact yet.","intent":"needs verification","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"uncertain_005","type":"uncertainty","text":"The safest answer is to verify that first.","intent":"safety/accuracy","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"uncertain_006","type":"uncertainty","text":"I have partial information, not enough to be definitive.","intent":"partial retrieval","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"low","interruptible":true},
+
+    {"id":"empathy_001","type":"empathy","text":"That’s frustrating.","intent":"mild frustration acknowledged","latency_window":"none","confidence":"unknown","affect":"frustrated","cache_priority":"medium","interruptible":true},
+    {"id":"empathy_002","type":"empathy","text":"I can see why that matters.","intent":"importance acknowledged","latency_window":"none","confidence":"unknown","affect":"warm","cache_priority":"medium","interruptible":true},
+    {"id":"empathy_003","type":"empathy","text":"That sounds annoying — let’s sort it.","intent":"problem-solving empathy","latency_window":"none","confidence":"unknown","affect":"frustrated","cache_priority":"medium","interruptible":true},
+    {"id":"empathy_004","type":"empathy","text":"I get why you’d want a clear answer.","intent":"clarity desire acknowledged","latency_window":"none","confidence":"unknown","affect":"warm","cache_priority":"medium","interruptible":true},
+    {"id":"empathy_005","type":"empathy","text":"Let’s make this simple.","intent":"reduce user friction","latency_window":"none","confidence":"unknown","affect":"warm","cache_priority":"medium","interruptible":true},
+    {"id":"empathy_006","type":"empathy","text":"No worries — we can work through it.","intent":"reassure","latency_window":"none","confidence":"unknown","affect":"warm","cache_priority":"medium","interruptible":true},
+    {"id":"empathy_007","type":"empathy","text":"I’ll keep it straightforward.","intent":"brevity promise","latency_window":"none","confidence":"unknown","affect":"warm","cache_priority":"low","interruptible":true},
+
+    {"id":"boundary_001","type":"boundary","text":"I can’t confirm that from what I have.","intent":"no evidence","latency_window":"none","confidence":"low","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"boundary_002","type":"boundary","text":"I don’t have enough to answer that safely.","intent":"insufficient evidence","latency_window":"none","confidence":"low","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"boundary_003","type":"boundary","text":"I can’t make that promise.","intent":"avoid overpromising","latency_window":"none","confidence":"low","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"boundary_004","type":"boundary","text":"That would need a person to confirm.","intent":"human escalation needed","latency_window":"none","confidence":"low","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"boundary_005","type":"boundary","text":"I can help with the next step, but I can’t decide that for them.","intent":"scope boundary","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"low","interruptible":true},
+
+    {"id":"handoff_001","type":"handoff","text":"I can pass that to Sam.","intent":"handoff to Sam if enabled","latency_window":"none","confidence":"high","affect":"neutral","cache_priority":"medium","interruptible":true,"requires_capability":"handoff_to_sam"},
+    {"id":"handoff_002","type":"handoff","text":"I’ll make a note of that.","intent":"note-taking if enabled","latency_window":"none","confidence":"high","affect":"neutral","cache_priority":"medium","interruptible":true,"requires_capability":"create_note"},
+    {"id":"handoff_003","type":"handoff","text":"I’ll queue that up.","intent":"queue task if enabled","latency_window":"none","confidence":"high","affect":"neutral","cache_priority":"medium","interruptible":true,"requires_capability":"queue_task"},
+    {"id":"handoff_004","type":"handoff","text":"I can send that through.","intent":"message/action if enabled","latency_window":"none","confidence":"high","affect":"neutral","cache_priority":"medium","interruptible":true,"requires_capability":"send_message"},
+
+    {"id":"interrupt_001","type":"interruption","text":"Of course.","intent":"user interrupts; acknowledge and yield","latency_window":"under_500ms","confidence":"unknown","affect":"neutral","cache_priority":"critical","interruptible":true},
+    {"id":"interrupt_002","type":"interruption","text":"Go ahead.","intent":"yield floor","latency_window":"under_500ms","confidence":"unknown","affect":"neutral","cache_priority":"critical","interruptible":true},
+    {"id":"interrupt_003","type":"interruption","text":"Sorry, go ahead.","intent":"apologetic yield","latency_window":"under_500ms","confidence":"unknown","affect":"neutral","cache_priority":"critical","interruptible":true},
+    {"id":"interrupt_004","type":"interruption","text":"No problem.","intent":"acknowledge correction","latency_window":"under_500ms","confidence":"unknown","affect":"warm","cache_priority":"critical","interruptible":true},
+    {"id":"interrupt_005","type":"interruption","text":"No problem, I can adjust that.","intent":"user corrects / changes course","latency_window":"under_500ms","confidence":"unknown","affect":"warm","cache_priority":"high","interruptible":true},
+    {"id":"interrupt_006","type":"interruption","text":"Let me stop there.","intent":"barge-in cancellation acknowledgement","latency_window":"under_500ms","confidence":"unknown","affect":"neutral","cache_priority":"high","interruptible":true},
+    {"id":"interrupt_007","type":"interruption","text":"You’re right — let me adjust.","intent":"user correction accepted","latency_window":"under_500ms","confidence":"medium","affect":"warm","cache_priority":"medium","interruptible":true},
+    {"id":"interrupt_008","type":"interruption","text":"Got it — different direction.","intent":"topic shift accepted","latency_window":"under_500ms","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true},
+
+    {"id":"name_001","type":"repair","text":"Could I have your name, please?","intent":"collect name","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"high","interruptible":true},
+    {"id":"name_002","type":"receipt","text":"Thanks, Sam.","intent":"name receipt Sam","latency_window":"none","confidence":"high","affect":"warm","cache_priority":"medium","interruptible":true},
+    {"id":"name_003","type":"receipt","text":"Thanks, Julie.","intent":"name receipt Julie","latency_window":"none","confidence":"high","affect":"warm","cache_priority":"medium","interruptible":true},
+    {"id":"name_004","type":"receipt","text":"Thanks — I’ve got that.","intent":"generic name/info receipt","latency_window":"none","confidence":"high","affect":"warm","cache_priority":"medium","interruptible":true},
+
+    {"id":"ams_001","type":"repair","text":"Are you asking about registration, or a current course?","intent":"AMS route prospect/current","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"ams_002","type":"repair","text":"Which campus are you looking at?","intent":"AMS campus clarify","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"medium","interruptible":true},
+    {"id":"ams_003","type":"repair","text":"For Montreal, I would check the campus schedule first.","intent":"AMS Montreal bridge","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"low","interruptible":true},
+    {"id":"ams_004","type":"repair","text":"For Laval, I would check the next available cohort.","intent":"AMS Laval bridge","latency_window":"none","confidence":"medium","affect":"neutral","cache_priority":"low","interruptible":true},
+    {"id":"ams_005","type":"answer_bridge","text":"For level one, the key details are hours, schedule, and price.","intent":"AMS level one answer setup","latency_window":"none","confidence":"high","affect":"neutral","cache_priority":"low","interruptible":true},
+    {"id":"ams_006","type":"answer_bridge","text":"If you’re already a student, I’ll start with schedule and course support.","intent":"AMS current student support route","latency_window":"none","confidence":"high","affect":"neutral","cache_priority":"low","interruptible":true},
+
+    {"id":"rare_001","type":"rare_emotion","text":"That makes sense <chuckle> let me narrow it down.","intent":"rare warm narrowing","latency_window":"over_2500ms","confidence":"medium","affect":"casual","cache_priority":"low","interruptible":true,"requires_manual_review":true,"max_frequency":"rare","avoid_when":["first_latency_line","user_upset","professional_high_stakes"]},
+    {"id":"rare_002","type":"rare_emotion","text":"Fair question.","intent":"light warmth without chuckle","latency_window":"none","confidence":"medium","affect":"casual","cache_priority":"medium","interruptible":true,"requires_manual_review":false},
+    {"id":"rare_003","type":"rare_emotion","text":"That’s a good question.","intent":"light validation","latency_window":"none","confidence":"medium","affect":"warm","cache_priority":"medium","interruptible":true,"requires_manual_review":false},
+    {"id":"rare_004","type":"rare_emotion","text":"Good catch.","intent":"user correction positive","latency_window":"none","confidence":"medium","affect":"casual","cache_priority":"medium","interruptible":true,"requires_manual_review":false},
+    {"id":"rare_005","type":"rare_emotion","text":"You’re right to ask.","intent":"validation serious","latency_window":"none","confidence":"medium","affect":"warm","cache_priority":"low","interruptible":true,"requires_manual_review":false}
+  ],
+  "anti_patterns": [
+    "Do not say 'I understand' when comprehension is uncertain.",
+    "Do not fill every silence.",
+    "Do not loop 'Let me check' repeatedly.",
+    "Do not use chuckles as default latency masks.",
+    "Do not imply a handoff, note, or message unless that action exists.",
+    "Do not directly translate English filler logic into French / FR-CA."
+  ]
+}

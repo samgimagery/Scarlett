@@ -56,3 +56,7 @@ telegram_bot_gemini.py
 csm_streaming_server.py
 latency_profiler.py
 live_conversation_v2.py
+
+# Scarlett bench generated/vendor artifacts
+orpheus_bench/outputs/
+orpheus_bench/external/

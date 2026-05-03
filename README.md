@@ -220,13 +220,18 @@ This AMS version is the reference implementation for the product packaging phase
 
 Package as:
 
-- generic receptionist engine
+- generic Scarlett Core engine
 - customer vault ingestion pipeline
 - customer-specific service profile/soul
+- Scarlett Service Flow Engine for staged customer-service behaviour
 - deterministic business facts layer for prices, locations, dates, forms, and catalog lists
+- channel adapters: Telegram, website bubble, admin demo, voice later
 - human approval workflow before website changes update the active truth
+- managed tuning loop from real conversations
 
 AMS is the locked baseline for “correct receptionist behaviour,” especially the service flow: answer, discover, connect course features to benefits, then offer the right next step.
+
+Important sequencing nuance: à-la-carte courses are valid offers, not hidden. They should simply be sequenced intelligently — not first when the main path fits better, but offered when the customer asks for a technique, is a current student/customer adding training, needs continuing education, or after the main path has been oriented.
 
 ## Locked GitHub Baseline
 
