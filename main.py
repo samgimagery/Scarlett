@@ -24,7 +24,7 @@ from vault_context import get_vault_context
 from location_layer import answer_location
 from pricing_layer import answer_pricing
 from continuing_ed_layer import answer_continuing_ed
-from student_support_layer import answer_current_student, answer_julie
+from student_support_layer import answer_current_student
 
 app = FastAPI(title="Receptionist Bot", version="0.1.0")
 
@@ -108,20 +108,6 @@ async def ask(request: AskRequest):
         latency = int((time.time() - start) * 1000)
         log_interaction(question=request.question, language=lang, top_score=0, sources=[], answer=answer, refused=False, model=OLLAMA_MODEL, latency_ms=latency)
         return AskResponse(answer=answer, sources=[], top_score=0, refused=False, model=OLLAMA_MODEL, latency_ms=latency)
-
-    # 0.55 Human lore route for the old website bot. Keep it warm, but do not accuse vendors.
-    julie_answer = answer_julie(request.question)
-    if julie_answer:
-        latency = int((time.time() - start) * 1000)
-        log_interaction(
-            question=request.question, language=lang, top_score=1,
-            sources=["local_julie_layer"], answer=julie_answer, refused=False,
-            model="local", latency_ms=latency
-        )
-        return AskResponse(
-            answer=julie_answer, sources=["local_julie_layer"], top_score=1,
-            refused=False, model="local", latency_ms=latency
-        )
 
     # 0.56 Deterministic current-student support route.
     current_student_answer = answer_current_student(request.question)

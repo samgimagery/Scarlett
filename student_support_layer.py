@@ -1,8 +1,8 @@
 """Deterministic AMS current-student support answers.
 
 This keeps Scarlett from treating active students as either brand-new leads or
-already-trained practitioners. The layer only handles clear current-student and
-Julie references; everything else falls through to RAG.
+already-trained practitioners. The layer only handles clear current-student
+support situations; everything else falls through to RAG.
 """
 import re
 import unicodedata
@@ -13,18 +13,6 @@ def _norm(text: str) -> str:
     text = "".join(ch for ch in text if not unicodedata.combining(ch))
     text = text.lower().replace("’", "'")
     return re.sub(r"\s+", " ", text).strip()
-
-
-def answer_julie(question: str):
-    q = _norm(question)
-    if "julie" not in q:
-        return None
-
-    return (
-        "Julie, c’était l’ancien bot du site. On va le dire doucement : elle a eu une vie difficile. "
-        "Elle essayait d’aider, mais elle était assez limitée.\n\n"
-        "Moi, je suis Scarlett. Je vais faire de mon mieux pour vous répondre plus clairement."
-    )
 
 
 def answer_current_student(question: str):
@@ -43,7 +31,16 @@ def answer_current_student(question: str):
         "besoin d'aide", "quoi faire", "prochaine etape", "cours suivant", "continuer apres",
     ]
     is_current_student = any(x in q for x in current_student_markers)
-    asks_student_support = any(x in q for x in support_markers) and any(x in q for x in ["etudiant", "etudiante", "niveau 1", "formation", "ams"])
+    # Be deliberately strict here. Prospects often ask about "Niveau 1", "formation",
+    # "cours", or AMS in general; that must NOT loop them into current-student support.
+    # Only route to support when the user explicitly says they are already a student,
+    # enrolled, in-progress, or asks about clearly internal student systems like Moodle.
+    explicit_student_context = any(x in q for x in [
+        "etudiant", "etudiante", "inscrit", "inscrite", "deja inscrit", "deja inscrite",
+        "en cours", "je fais", "mon niveau", "ma cohorte", "moodle", "dossier academique",
+        "plateforme", "absence", "retard", "facture", "paiement etudiant",
+    ])
+    asks_student_support = any(x in q for x in support_markers) and explicit_student_context
     if not (is_current_student or asks_student_support):
         return None
 

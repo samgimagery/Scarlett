@@ -14,6 +14,8 @@ import html
 import shutil
 import json
 import glob
+import difflib
+import unicodedata
 from pathlib import Path
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
@@ -268,7 +270,9 @@ def _is_greeting(question: str) -> bool:
         r"^(hello|hi|hey|bonjour|salut|coucou|yo)[, ]+(how are you|how are you doing|ça va|ca va|comment ça va|comment ca va|tu vas bien|vous allez bien)$",
         r"^(how are you|how are you doing|ça va|ca va|comment ça va|comment ca va|tu vas bien|vous allez bien)$",
     ]
-    return any(re.match(p, q) for p in greeting_patterns) or len(q) < 3
+    # Do not treat short acknowledgements like "ok" as greetings; they often mean
+    # "continue the active offer" in Scarlett's guided flow.
+    return any(re.match(p, q) for p in greeting_patterns) or len(q) == 0
 
 
 def _smooth_guided_offer(text: str) -> str:
@@ -296,6 +300,18 @@ def _smooth_guided_offer(text: str) -> str:
     text = re.sub(
         r"(?:\n\s*)?Qu[’']est-ce que vous aimeriez savoir ensuite\s*:\s*les prochaines dates disponibles ou les détails sur l[’']inscription\s*\?\s*$",
         "\n\nJe peux ensuite regarder les prochaines dates disponibles.",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"(?:\n\s*)?Qu[’']est-ce que vous aimeriez savoir en premier pour voir si ça vous convient\s*:\s*le contenu(?: détaillé| des cours)?, les horaires? disponibles ou l[’']inscription\s*\?\s*$",
+        "\n\nJe peux commencer par le contenu du parcours.",
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(
+        r"(?:\n\s*)?Souhaitez-vous connaître les horaires disponibles ou les prochaines dates de début\s*\?\s*$",
+        "\n\nJe peux ensuite regarder les prochaines dates de début.",
         text,
         flags=re.IGNORECASE,
     )
@@ -516,6 +532,30 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text("Bonjour, je suis Scarlett. Je peux vous aider à trouver le bon parcours à l’AMS.")
             return
 
+        if _is_repeat_complaint(question):
+            answer = _repeat_complaint_reply(context.user_data)
+            _update_conversation_state(context.user_data, question, answer)
+            await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
+            return
+
+        if _is_capability_query(question):
+            answer = _capability_reply(context.user_data)
+            _update_conversation_state(context.user_data, question, answer)
+            await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
+            return
+
+        if _is_assumption_challenge(question):
+            answer = _assumption_challenge_reply(context.user_data)
+            _update_conversation_state(context.user_data, question, answer)
+            await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
+            return
+
+        if _is_lost_query(question):
+            answer = _lost_reply(context.user_data)
+            _update_conversation_state(context.user_data, question, answer)
+            await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
+            return
+
         if _is_new_student_intro(question):
             answer = _new_student_intro_reply(context.user_data, question)
             await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
@@ -565,6 +605,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         data = resp.json()
         raw_answer = data.get("answer", "I couldn't process that question.")
         answer = _smooth_guided_offer(_chat_safe(raw_answer, strip_intro=True))
+        answer = _de_repeat_answer(context.user_data, answer)
         answer_for_voice = _voice_text(answer)
         sources = data.get("sources", [])
         refused = data.get("refused", False)
@@ -644,10 +685,145 @@ def _conversation_context(user_data) -> str:
         parts.append(f"Dernière offre active: {user_data['pending_offer']}. Si la personne répond seulement oui/ok, continuer avec cette offre sans répéter le choix.")
     last = user_data.get("recent_turns", [])[-3:]
     if last:
+        parts.append("Anti-répétition stricte: ne jamais reprendre la même formule d'ouverture, le même paragraphe d'explication, ou la même offre finale que dans les échanges récents. Répondre à la nouvelle demande avec de l'information nouvelle ou un angle plus précis. Éviter complètement les amorces génériques déjà utilisées comme « C'est une excellente question ».")
+        openings = _recent_answer_openings(last)
+        if openings:
+            parts.append("Ouvertures déjà utilisées à ne pas réutiliser:")
+            for opening in openings:
+                parts.append(f"- {opening}")
         parts.append("Derniers échanges résumés:")
         for t in last:
             parts.append(f"- Client: {t.get('q','')[:140]} | Scarlett: {t.get('a','')[:220]}")
     return "\n".join(parts)
+
+
+def _plain_text(text: str) -> str:
+    import re
+    raw = html.unescape(text or "")
+    raw = re.sub(r"<[^>]+>", "", raw)
+    raw = raw.replace("**", "")
+    return re.sub(r"\s+", " ", raw).strip()
+
+
+def _repeat_norm(text: str) -> str:
+    import re
+    text = _plain_text(text).lower().replace("’", "'")
+    text = "".join(c for c in unicodedata.normalize("NFD", text) if unicodedata.category(c) != "Mn")
+    text = re.sub(r"[^a-z0-9$% ]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _split_response_units(text: str) -> list[str]:
+    """Split a bot answer into paragraphs / leading sentences for repeat guards."""
+    import re
+    raw = html.unescape(text or "").strip()
+    raw = re.sub(r"<br\s*/?>", "\n", raw, flags=re.IGNORECASE)
+    raw = re.sub(r"<[^>]+>", "", raw)
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", raw) if p.strip()]
+    if not paragraphs and raw:
+        paragraphs = [raw]
+    units = []
+    for p in paragraphs[:2]:
+        units.append(p)
+        units.extend(s.strip() for s in re.split(r"(?<=[.!?])\s+", p)[:2] if s.strip())
+    return units
+
+
+def _recent_answer_openings(turns: list[dict], limit: int = 3) -> list[str]:
+    openings = []
+    for t in turns:
+        units = _split_response_units(t.get("a", ""))
+        if units:
+            opening = _plain_text(units[0])[:180]
+            if opening and opening not in openings:
+                openings.append(opening)
+    return openings[-limit:]
+
+
+def _similar(a: str, b: str) -> float:
+    na, nb = _repeat_norm(a), _repeat_norm(b)
+    if not na or not nb:
+        return 0.0
+    if na == nb or na in nb or nb in na:
+        return 1.0
+    return difflib.SequenceMatcher(None, na, nb).ratio()
+
+
+def _de_repeat_answer(user_data, answer: str) -> str:
+    """Post-process Scarlett replies so prompt-level anti-repeat failures do not reach customers."""
+    import re
+    if not answer:
+        return answer
+
+    recent_answers = [t.get("a", "") for t in user_data.get("recent_turns", [])[-3:] if t.get("a")]
+    if not recent_answers:
+        return answer
+
+    guarded = answer.strip()
+    if _repeat_norm(guarded).startswith("c est une excellente question"):
+        guarded = re.sub(r"^[^.!?]*[.!?]\s*", "", guarded, count=1).strip()
+    generic_openers = [
+        r"^C['’]est une excellente question,?\s*(?:et c['’]est (?:tout à fait )?normal de vouloir[^.!?]*[.!?]\s*)?",
+        r"^C['’]est (?:tout à fait )?normal de vouloir[^.!?]*[.!?]\s*",
+        r"^Pour vous donner une idée réaliste,?\s*",
+    ]
+    if any("c est une excellente question" in _repeat_norm(a) for a in recent_answers):
+        before = guarded
+        for pat in generic_openers:
+            guarded = re.sub(pat, "", guarded, flags=re.IGNORECASE).strip()
+        # Last-resort opener trim if wording varied beyond the known patterns.
+        if guarded == before and _repeat_norm(guarded).startswith("c est une excellente question"):
+            guarded = re.sub(r"^[^.!?]*[.!?]\s*", "", guarded, count=1).strip()
+
+    for _ in range(3):
+        units = _split_response_units(guarded)
+        if not units:
+            break
+        # Prefer sentence-level trimming over deleting the whole paragraph.
+        lead = units[1] if len(units) > 1 else units[0]
+        lead_norm = _repeat_norm(lead)
+        if len(lead_norm) < 20:
+            break
+        repeated = any(_similar(lead, old_unit) >= 0.82 for old in recent_answers for old_unit in _split_response_units(old))
+        if not repeated:
+            break
+        pattern = re.escape(lead)
+        guarded = re.sub(pattern, "", guarded, count=1).strip()
+        guarded = re.sub(r"^(?:<br\s*/?>|\s|\n)+", "", guarded).strip()
+
+    if any(_similar(guarded, old) >= 0.76 for old in recent_answers):
+        return (
+            "Vous avez raison — je ne vais pas répéter la même réponse.\n\n"
+            "Pour répondre plus précisément à votre nouvelle question : le revenu potentiel avec le Niveau 2 dépend surtout de votre spécialisation, de votre volume de clients et de votre positionnement. Le Niveau 2 sert à vous permettre de facturer plus solidement qu’un parcours de base, mais l’AMS ne peut pas garantir un revenu précis."
+        )
+
+    guarded = re.sub(r"^(Cependant|Toutefois|Par contre),?\s+", "", guarded, flags=re.IGNORECASE).strip()
+    if not guarded:
+        return (
+            "Vous avez raison — je ne vais pas répéter la même réponse.\n\n"
+            "Je garde ce qui a déjà été couvert et je réponds seulement au nouvel angle demandé."
+        )
+    if guarded and guarded[0].islower():
+        guarded = guarded[0].upper() + guarded[1:]
+    return guarded
+
+
+def _is_repeat_complaint(question: str) -> bool:
+    q = _norm_chat(question)
+    return any(x in q for x in [
+        "arrete de repeter", "arrête de répéter", "tu repetes", "tu répètes", "vous repetez", "vous répétez",
+        "stop repeating", "same answer", "meme reponse", "même réponse", "encore la meme", "encore la même",
+        "tu viens de dire", "vous venez de dire"
+    ])
+
+
+def _repeat_complaint_reply(user_data) -> str:
+    user_data["repeat_guard_active"] = True
+    user_data.pop("pending_offer", None)
+    return (
+        "Vous avez raison — je vais arrêter de reprendre la même formule.\n\n"
+        "À partir d’ici, je réponds directement à la nouvelle question et je garde en tête ce qui a déjà été couvert."
+    )
 
 
 def _norm_chat(text: str) -> str:
@@ -668,14 +844,84 @@ def _is_affirmation(question: str) -> bool:
     return q in affirmations or (q.startswith("oui") and len(q) <= 40) or ("d'accord" in q and len(q) <= 40)
 
 
+def _is_capability_query(question: str) -> bool:
+    """User asks what Scarlett can do; answer capabilities, do not infer a course path."""
+    q = _norm_chat(question)
+    exact = any(x in q for x in [
+        "qu'est ce que tu peux faire", "qu'est-ce que tu peux faire", "quest ce que tu peux faire",
+        "qu'est ce que vous pouvez faire", "qu'est-ce que vous pouvez faire", "quest ce que vous pouvez faire",
+        "tu peux faire quoi", "vous pouvez faire quoi", "que peux-tu faire", "que pouvez-vous faire",
+        "comment tu peux m'aider", "comment vous pouvez m'aider", "comment peux-tu m'aider",
+        "what can you do", "how can you help",
+    ])
+    loose = any(x in q for x in ["peux faire", "pouvez faire"]) and any(x in q for x in ["pour moi", "m'aider", "aider", "quoi", "que"])
+    return exact or loose
+
+
+def _capability_reply(user_data) -> str:
+    user_data.pop("pending_offer", None)
+    return (
+        "Je peux vous aider à vous orienter dans les formations AMS : le bon parcours selon votre situation, "
+        "les prix, les campus, l’inscription, les dates générales et les questions pratiques.\n\n"
+        "Je peux aussi vous éviter de fouiller tout le site : vous me dites ce que vous cherchez, "
+        "et je vous donne la prochaine étape claire."
+    )
+
+
+def _is_assumption_challenge(question: str) -> bool:
+    """User is challenging a wrong assumption; do not treat mentioned status terms as facts."""
+    q = _norm_chat(question)
+    challenge = any(x in q for x in [
+        "comment tu assume", "comment tu assumes", "pourquoi tu assume", "pourquoi tu assumes",
+        "tu assumes", "tu assume", "t'assumes", "t assume", "pourquoi tu penses",
+        "comment ca tu assume", "comment ça tu assume", "comment ca tu assumes", "comment ça tu assumes",
+    ])
+    status_terms = any(x in q for x in [
+        "niveau 1", "niveau 2", "formation", "déjà", "deja", "praticien", "praticienne",
+        "massothérapeute", "massotherapeute", "400h", "400 heures",
+    ])
+    return challenge and status_terms
+
+
+def _assumption_challenge_reply(user_data) -> str:
+    facts = user_data.setdefault("facts", {})
+    facts.pop("student_status", None)
+    user_data.pop("pending_offer", None)
+    return (
+        "Vous avez raison — je suis allée trop vite. Je ne devrais pas supposer que vous avez déjà le Niveau 1.\n\n"
+        "On reprend proprement : vous commencez en massage, vous êtes déjà étudiant à l’AMS, "
+        "ou vous avez déjà une formation en massage ?"
+    )
+
+
 def _is_dates_query(question: str) -> bool:
     q = _norm_chat(question)
     return any(x in q for x in ["date", "dates", "session", "sessions", "quand", "debut", "début", "horaire", "horaires"])
 
 
+def _is_lost_query(question: str) -> bool:
+    q = _norm_chat(question)
+    return any(x in q for x in [
+        "je suis perdu", "je suis perdue", "suis perdu", "suis perdue", "un peu perdu", "un peu perdue",
+        "je ne sais pas", "je sais pas", "jsais pas", "j'sais pas", "pas sur", "pas sûr", "pas sure", "pas sûre",
+        "je veux comprendre", "aide moi", "aidez moi", "besoin d'aide", "besoin aide",
+    ])
+
+
+def _lost_reply(user_data) -> str:
+    user_data.pop("pending_offer", None)
+    user_data.setdefault("facts", {}).pop("signup_link_sent", None)
+    user_data["pending_offer"] = "Aider la personne à s'orienter doucement; si elle répond oui/ok, donner l'aperçu débutant Niveau 1 en mode découverte."
+    return (
+        "Bien sûr. On va y aller simplement.\n\n"
+        "À l’AMS, si vous commencez en massage, le point de départ habituel est le **Niveau 1 | Praticien en massothérapie**.\n\n"
+        "Je peux vous expliquer le parcours, le prix et comment la formation fonctionne, étape par étape."
+    )
+
+
 def _is_enrolment_query(question: str) -> bool:
     q = _norm_chat(question)
-    return any(x in q for x in ["inscription", "inscrire", "m'inscrire", "minscrire", "formulaire", "lien", "site web", "comment je fais", "comment faire", "réserver", "reserver", "ma place", "place"])
+    return any(x in q for x in ["inscription", "inscrire", "m'inscrire", "minscrire", "formulaire", "lien", "site web", "réserver", "reserver", "ma place", "place"])
 
 
 def _direct_flow_reply(user_data, question: str):
@@ -779,6 +1025,8 @@ def _expand_followup_question(user_data, question: str) -> str:
     pending = user_data.pop("pending_offer", None) if _is_affirmation(question) else None
     if pending:
         p = pending.lower()
+        if any(x in p for x in ["orienter doucement", "aperçu débutant", "apercu debutant", "mode découverte", "mode decouverte"]):
+            return "La personne est perdue et veut d'abord comprendre. Explique doucement le parcours habituel Niveau 1: à qui ça s'adresse, durée 400 h, prix 4 995 $, format hybride, et demande ce qui compte le plus pour elle (rythme, budget, contenu ou campus). Reste en mode découverte; ne pousse pas vers une action administrative."
         if any(x in p for x in ["première question", "premiere question", "répondre à la première", "voir si ça vous convient", "voir si ca vous convient"]):
             return "Donne un aperçu utile du Niveau 1 pour aider la personne à découvrir le parcours avant toute inscription: prix, durée, format hybride, contenu principal et bénéfices. Termine par une question ouverte sur ce qui compte le plus pour elle (rythme, budget, contenu, campus), sans proposer le formulaire."
         if any(x in p for x in ["stage", "stages", "pratique", "international", "étranger", "etranger", "france", "modalités pour étudiant international"]):
@@ -820,7 +1068,7 @@ def _remember_pending_offer(user_data, question: str, answer: str):
         offer = "Expliquer les stages/la pratique au Québec et les modalités pour une personne à l'étranger; poser ensuite une question ouverte sur ce qui compte le plus (voyage, rythme, budget, reconnaissance). Ne pas envoyer le formulaire sauf demande claire."
     elif any(x in clean for x in ["détails du parcours", "details du parcours", "prix et le contenu", "prix et contenu", "détails et prix", "details et prix"]):
         offer = "Donne les détails du parcours habituel pour débuter: Niveau 1 | Praticien en massothérapie, prix, durée, format hybride, contenu principal, et prochaine étape simple."
-    elif any(x in clean for x in ["formulaire", "inscription", "s'inscrire", "site web", "lien"]):
+    elif any(x in clean for x in ["formulaire", "s'inscrire", "s’inscrire", "réserver", "reserver", "ma place", "lien d'inscription", "lien d’inscription"]):
         offer = "Aider avec une question précise sur le formulaire, le campus ou le paiement; ne pas retransmettre le formulaire sauf demande claire." if signup_already_sent else "Transmettre le formulaire d'inscription officiel si la personne veut commencer ou réserver sa place."
     elif any(x in clean for x in ["horaire", "horaires", "prochaine date", "prochaines dates", "dates disponibles", "session", "sessions"]):
         offer = "Donner les mois généraux des prochaines sessions et expliquer que les dates exactes doivent être confirmées avec l'AMS; ne pas prétendre vérifier en temps réel."
@@ -840,6 +1088,11 @@ def _update_conversation_state(user_data, question: str, answer: str):
     import re
     q = question.lower()
     facts = user_data.setdefault("facts", {})
+    if _is_capability_query(question) or _is_assumption_challenge(question) or _is_lost_query(question):
+        turns = user_data.setdefault("recent_turns", [])
+        turns.append({"q": question, "a": answer})
+        del turns[:-5]
+        return
     if any(x in q for x in ["je débute", "je debute", "je suis nouveau", "je suis nouvelle", "nouveau", "nouvelle", "débutant", "debutant", "je commence", "aucune formation", "pas de formation"]):
         facts["student_status"] = "new"
     if any(x in q for x in ["j'ai déjà", "jai deja", "déjà une formation", "deja une formation", "je suis massothérapeute", "je suis massotherapeute", "massotherapeute", "massothérapeute", "praticien en massage", "praticienne en massage", "niveau 1", "niveau 2", "400 heures", "400h"]):
@@ -879,6 +1132,30 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             context.user_data["welcomed_once"] = True
             await update.message.reply_text("Bonjour, je suis Scarlett. Je peux vous aider à trouver le bon parcours à l’AMS.")
+        return
+
+    if _is_repeat_complaint(question):
+        answer = _repeat_complaint_reply(context.user_data)
+        _update_conversation_state(context.user_data, question, answer)
+        await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
+        return
+
+    if _is_capability_query(question):
+        answer = _capability_reply(context.user_data)
+        _update_conversation_state(context.user_data, question, answer)
+        await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
+        return
+
+    if _is_assumption_challenge(question):
+        answer = _assumption_challenge_reply(context.user_data)
+        _update_conversation_state(context.user_data, question, answer)
+        await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
+        return
+
+    if _is_lost_query(question):
+        answer = _lost_reply(context.user_data)
+        _update_conversation_state(context.user_data, question, answer)
+        await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
         return
 
     if _is_new_student_intro(question):
@@ -921,6 +1198,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if resp.status_code == 200:
             data = resp.json()
             answer = _smooth_guided_offer(_chat_safe(data.get("answer", "I couldn't process that question."), strip_intro=True))
+            answer = _de_repeat_answer(context.user_data, answer)
             sources = data.get("sources", [])
             refused = data.get("refused", False)
             

@@ -1,0 +1,33 @@
+{
+  "name": "Scarlett French Canadian Live Voice Language Bank",
+  "version": "2026-05-03-fr-ca-v1",
+  "req": "REQ-108",
+  "locale": "fr-CA",
+  "voice_target": "leah",
+  "model_target": "legraphista/Orpheus:latest",
+  "status": "draft",
+  "design_principles": [
+    "French is not a translation pass; it needs its own rhythm and service phrases.",
+    "Use composed receptionist delivery first: no chuckles, no theatrical emotion.",
+    "Keep micro-utterances short, interruptible, and truthful to system state.",
+    "Prefer Québec/AMS naturalness over literal English filler equivalents.",
+    "Cache tiny receipts and floor-holders; generate longer answer chunks at sentence boundaries."
+  ],
+  "lines": [
+    {"id":"fr_receipt_001","type":"receipt","cache_priority":"critical","intent":"received enough to proceed","text":"Parfait."},
+    {"id":"fr_receipt_002","type":"receipt","cache_priority":"critical","intent":"received enough to proceed","text":"D'accord."},
+    {"id":"fr_receipt_003","type":"receipt","cache_priority":"high","intent":"polite receipt","text":"Bien sûr."},
+    {"id":"fr_receipt_004","type":"receipt","cache_priority":"high","intent":"grounding","text":"Je comprends."},
+    {"id":"fr_floor_001","type":"floor_holder","cache_priority":"critical","intent":"short lookup","text":"Un instant."},
+    {"id":"fr_floor_002","type":"floor_holder","cache_priority":"critical","intent":"lookup","text":"Je vérifie ça."},
+    {"id":"fr_floor_003","type":"floor_holder","cache_priority":"critical","intent":"polite lookup","text":"Je regarde ça pour vous."},
+    {"id":"fr_floor_004","type":"floor_holder","cache_priority":"high","intent":"answer found","text":"J'ai trouvé."},
+    {"id":"fr_floor_005","type":"floor_holder","cache_priority":"high","intent":"answer about to start","text":"Voilà."},
+    {"id":"fr_repair_001","type":"repair","cache_priority":"high","intent":"missed detail","text":"Pardon, je n'ai pas bien saisi la dernière partie."},
+    {"id":"fr_boundary_001","type":"boundary","cache_priority":"high","intent":"do not guess","text":"Je ne veux pas deviner."},
+    {"id":"fr_ams_001","type":"answer_chunk","cache_priority":"medium","intent":"beginner path","text":"Le point de départ est généralement le Niveau 1 en massothérapie."},
+    {"id":"fr_ams_002","type":"answer_chunk","cache_priority":"medium","intent":"price","text":"Le Niveau 1 est à quatre mille neuf cent quatre-vingt-quinze dollars."},
+    {"id":"fr_ams_003","type":"answer_chunk","cache_priority":"medium","intent":"trained path","text":"Si vous avez déjà une formation, le parcours principal à regarder d'abord est le Niveau 2."},
+    {"id":"fr_ams_004","type":"answer_chunk","cache_priority":"medium","intent":"next question","text":"Qu'est-ce que vous aimeriez clarifier en premier : le contenu, l'horaire ou l'inscription?"}
+  ]
+}
