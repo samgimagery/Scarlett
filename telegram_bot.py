@@ -368,6 +368,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command."""
     context.user_data["welcomed"] = True
     context.user_data["welcomed_once"] = True
+    context.user_data["pending_offer"] = "Expliquer calmement comment Scarlett fonctionne et comment elle oriente une personne vers le bon parcours AMS; si la personne dit oui ou demande comment ça marche, donner le fonctionnement en mode service client, puis commencer par le parcours débutant Niveau 1."
     if RESPONSE_LANGUAGE == "fr":
         await update.message.reply_text(
             "Bonjour, je suis Scarlett.\n\n"
@@ -540,6 +541,18 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if _is_capability_query(question):
             answer = _capability_reply(context.user_data)
+            _update_conversation_state(context.user_data, question, answer)
+            await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
+            return
+
+        if _is_how_it_works_query(question):
+            answer = _how_it_works_reply(context.user_data)
+            _update_conversation_state(context.user_data, question, answer)
+            await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
+            return
+
+        if _is_old_bot_query(question):
+            answer = _old_bot_reply(context.user_data, question)
             _update_conversation_state(context.user_data, question, answer)
             await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
             return
@@ -868,6 +881,45 @@ def _capability_reply(user_data) -> str:
     )
 
 
+def _is_how_it_works_query(question: str) -> bool:
+    """User asks how Scarlett/the school process works; answer confidently, do not fail to office."""
+    q = _norm_chat(question)
+    for prefix in ("oui ", "ok ", "d'accord ", "parfait "):
+        if q.startswith(prefix):
+            q = q[len(prefix):].strip()
+    return any(x in q for x in [
+        "comment ca fonctionne", "comment ça fonctionne", "comment sa fonctionne",
+        "comment ca marche", "comment ça marche", "comment sa marche",
+        "ca fonctionne comment", "ça fonctionne comment", "sa fonctionne comment",
+        "ca marche comment", "ça marche comment", "sa marche comment",
+        "comment fonctionne", "comment marche", "fonctionne", "fonctionement", "fonctionnement",
+        "how does it work", "how it works",
+    ])
+
+
+def _how_it_works_reply(user_data) -> str:
+    user_data["pending_offer"] = "Continuer avec un aperçu débutant Niveau 1: prix, durée, format hybride et prochaine étape de découverte. Ne pas envoyer le formulaire sauf demande claire."
+    return (
+        "Bien sûr. Le fonctionnement est simple.\n\n"
+        "Je vous aide d’abord à situer votre point de départ : est-ce que vous commencez en massage, est-ce que vous êtes déjà étudiant, ou est-ce que vous avez déjà une formation. Ensuite, je vous donne le parcours le plus logique, avec les prix, le format, les campus et les prochaines étapes.\n\n"
+        "Si vous commencez, le point de départ habituel est le **Niveau 1 | Praticien en massothérapie** : 400 heures, format hybride, 4 995 $.\n\n"
+        "Je peux vous expliquer ce parcours clairement, sans vous envoyer trop vite vers un formulaire."
+    )
+
+
+def _is_old_bot_query(question: str) -> bool:
+    q = _norm_chat(question)
+    return any(x in q for x in ["ancien bot", "ancienne bot", "ancien robot", "ancienne robot", "bot du site", "julie"])
+
+
+def _old_bot_reply(user_data, question: str) -> str:
+    user_data.pop("pending_offer", None)
+    return (
+        "Je vois. L’ancien bot pouvait être limité; moi, je vais rester concrète et vous aider directement.\n\n"
+        "Dites-moi simplement ce que vous voulez comprendre — les formations, les prix, les campus, l’inscription ou le bon parcours — et je vous donne une réponse claire."
+    )
+
+
 def _is_assumption_challenge(question: str) -> bool:
     """User is challenging a wrong assumption; do not treat mentioned status terms as facts."""
     q = _norm_chat(question)
@@ -1025,6 +1077,8 @@ def _expand_followup_question(user_data, question: str) -> str:
     pending = user_data.pop("pending_offer", None) if _is_affirmation(question) else None
     if pending:
         p = pending.lower()
+        if any(x in p for x in ["comment scarlett fonctionne", "comment elle oriente", "comment ça marche", "comment ca marche"]):
+            return "Explique avec assurance comment Scarlett fonctionne comme réception AMS: elle situe le profil de la personne, explique le bon parcours, donne les prix/campus/dates générales/inscription, puis propose une prochaine étape simple. Si la personne débute, commence par Niveau 1: 400 h, format hybride, 4 995 $. Ne pas envoyer vers un conseiller ni le formulaire sauf demande claire."
         if any(x in p for x in ["orienter doucement", "aperçu débutant", "apercu debutant", "mode découverte", "mode decouverte"]):
             return "La personne est perdue et veut d'abord comprendre. Explique doucement le parcours habituel Niveau 1: à qui ça s'adresse, durée 400 h, prix 4 995 $, format hybride, et demande ce qui compte le plus pour elle (rythme, budget, contenu ou campus). Reste en mode découverte; ne pousse pas vers une action administrative."
         if any(x in p for x in ["première question", "premiere question", "répondre à la première", "voir si ça vous convient", "voir si ca vous convient"]):
@@ -1088,7 +1142,7 @@ def _update_conversation_state(user_data, question: str, answer: str):
     import re
     q = question.lower()
     facts = user_data.setdefault("facts", {})
-    if _is_capability_query(question) or _is_assumption_challenge(question) or _is_lost_query(question):
+    if _is_capability_query(question) or _is_how_it_works_query(question) or _is_old_bot_query(question) or _is_assumption_challenge(question) or _is_lost_query(question):
         turns = user_data.setdefault("recent_turns", [])
         turns.append({"q": question, "a": answer})
         del turns[:-5]
@@ -1142,6 +1196,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if _is_capability_query(question):
         answer = _capability_reply(context.user_data)
+        _update_conversation_state(context.user_data, question, answer)
+        await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
+        return
+
+    if _is_how_it_works_query(question):
+        answer = _how_it_works_reply(context.user_data)
+        _update_conversation_state(context.user_data, question, answer)
+        await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
+        return
+
+    if _is_old_bot_query(question):
+        answer = _old_bot_reply(context.user_data, question)
         _update_conversation_state(context.user_data, question, answer)
         await update.message.reply_text(_chat_safe(answer), parse_mode="HTML")
         return

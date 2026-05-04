@@ -65,6 +65,33 @@ async def lifespan(app):
 app.router.lifespan_context = lifespan
 
 
+
+def _norm_question(text: str) -> str:
+    import re
+    q = (text or "").lower().strip().replace("’", "'")
+    q = re.sub(r"[!?.,]+$", "", q).strip()
+    return re.sub(r"\s+", " ", q)
+
+
+def answer_how_it_works(question: str) -> Optional[str]:
+    q = _norm_question(question)
+    for prefix in ("oui ", "ok ", "d'accord ", "parfait "):
+        if q.startswith(prefix):
+            q = q[len(prefix):].strip()
+    if not any(x in q for x in [
+        "comment ca fonctionne", "comment ça fonctionne", "comment sa fonctionne",
+        "comment ca marche", "comment ça marche", "comment sa marche",
+        "ca fonctionne comment", "ça fonctionne comment", "sa fonctionne comment",
+        "comment fonctionne", "comment marche", "how does it work", "how it works",
+    ]):
+        return None
+    return (
+        "Bien sûr. Le fonctionnement est simple.\n\n"
+        "Je vous aide d’abord à situer votre point de départ : est-ce que vous commencez en massage, est-ce que vous êtes déjà étudiant, ou est-ce que vous avez déjà une formation. Ensuite, je vous donne le parcours le plus logique, avec les prix, le format, les campus et les prochaines étapes.\n\n"
+        "Si vous commencez, le point de départ habituel est le **Niveau 1 | Praticien en massothérapie** : 400 heures, format hybride, 4 995 $.\n\n"
+        "Je peux vous expliquer ce parcours clairement, sans vous envoyer trop vite vers un formulaire."
+    )
+
 @app.post("/ask", response_model=AskResponse)
 async def ask(request: AskRequest):
     """Ask a question, get a grounded answer."""
@@ -108,6 +135,20 @@ async def ask(request: AskRequest):
         latency = int((time.time() - start) * 1000)
         log_interaction(question=request.question, language=lang, top_score=0, sources=[], answer=answer, refused=False, model=OLLAMA_MODEL, latency_ms=latency)
         return AskResponse(answer=answer, sources=[], top_score=0, refused=False, model=OLLAMA_MODEL, latency_ms=latency)
+
+    # 0.55 Deterministic customer-service “how does it work?” route.
+    how_answer = answer_how_it_works(request.question)
+    if how_answer:
+        latency = int((time.time() - start) * 1000)
+        log_interaction(
+            question=request.question, language=lang, top_score=1,
+            sources=["local_service_confidence_layer"], answer=how_answer, refused=False,
+            model="local", latency_ms=latency
+        )
+        return AskResponse(
+            answer=how_answer, sources=["local_service_confidence_layer"], top_score=1,
+            refused=False, model="local", latency_ms=latency
+        )
 
     # 0.56 Deterministic current-student support route.
     current_student_answer = answer_current_student(request.question)
