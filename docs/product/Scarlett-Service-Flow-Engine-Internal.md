@@ -3,7 +3,7 @@ title: "Scarlett Service Flow Engine - Internal"
 type: product-architecture
 status: internal-canonical
 created: 2026-05-03
-updated: 2026-05-03
+updated: 2026-05-04
 confidentiality: internal-only
 priority: locked-primary-behaviour
 tags:
@@ -208,13 +208,15 @@ For voice, the same service loop applies, but with timing rules:
 - Never let a filler imply retrieval/search unless the system is actually doing work.
 - Lines should be cancellable mid-playback.
 
-Working target as of 2026-05-03:
+Locked voice target as of 2026-05-04:
 
-- Leah voice
-- Q8 Orpheus if fast enough
-- composed, no emotional acting
-- word/rhythm/speed before emotion
-- French soon after English timing is locked
+- FR-CA Qwen3 French LoRA is the preferred Scarlett French prototype direction.
+- `0.65` speed is locked for composed answer chunks and premium delivery.
+- `0.75` remains useful for quick bridges, receipts, and fast prefiller clips.
+- Cached-first live flow is core architecture: play a tasteful cached prefiller immediately while RAG/search/planning/generation runs, then answer in short grounded chunks.
+- Build and maintain a mega bank of situation-specific prefillers covering greetings, clarification, empathy, booking, pricing, location, dates, uncertainty, handoff, confirmation, and error recovery.
+- Slower, composed delivery is not a compromise; it is Scarlett's premium service posture.
+- Prototype/source voice work is internal only. Serious commercial deployment requires clean, licensed, or consented voice actor data trained into the same architecture.
 
 ## Implementation shape
 

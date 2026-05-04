@@ -1,0 +1,206 @@
+{
+  "name": "Scarlett French Canadian Mega Prefiller Bank",
+  "version": "2026-05-04-fr-ca-mega-prefillers-v2",
+  "req": "REQ-108",
+  "locale": "fr-CA",
+  "voice_target": "qwen3_tts_french_lora_pilot",
+  "model_target": "qwen3_tts_pilot_15min_finetuned",
+  "status": "bench",
+  "design_principles": [
+    "Fillers are not random hesitation; they are Scarlett buying useful time with calm confidence.",
+    "Keep phrases short enough to cache and play while RAG/search runs.",
+    "Avoid cartoonish interjections, jokes, over-apology, and France-France stiffness.",
+    "Use slower delivery as part of the character: composed, precise, velvet customer service.",
+    "Numbers and hard AMS details should remain in generated answer chunks, not filler unless scripted and verified."
+  ],
+  "lines": [
+    {
+      "id": "fr_fill_ack_001",
+      "type": "filler_acknowledge",
+      "cache_priority": "high",
+      "intent": "soft acknowledgement",
+      "text": "Bien sûr."
+    },
+    {
+      "id": "fr_fill_ack_002",
+      "type": "filler_acknowledge",
+      "cache_priority": "high",
+      "intent": "warm acknowledgement",
+      "text": "Oui, je peux vous aider avec ça."
+    },
+    {
+      "id": "fr_fill_ack_003",
+      "type": "filler_acknowledge",
+      "cache_priority": "high",
+      "intent": "confident acknowledgement",
+      "text": "Parfait, je m'en occupe."
+    },
+    {
+      "id": "fr_fill_lookup_001",
+      "type": "filler_lookup",
+      "cache_priority": "high",
+      "intent": "search transition",
+      "text": "Je regarde ça pour vous."
+    },
+    {
+      "id": "fr_fill_lookup_002",
+      "type": "filler_lookup",
+      "cache_priority": "high",
+      "intent": "search transition",
+      "text": "Je vais vérifier le bon endroit."
+    },
+    {
+      "id": "fr_fill_lookup_003",
+      "type": "filler_lookup",
+      "cache_priority": "high",
+      "intent": "search transition",
+      "text": "Je sais où regarder."
+    },
+    {
+      "id": "fr_fill_lookup_004",
+      "type": "filler_lookup",
+      "cache_priority": "high",
+      "intent": "search transition",
+      "text": "Laissez-moi juste vérifier ça."
+    },
+    {
+      "id": "fr_fill_bridge_001",
+      "type": "filler_bridge",
+      "cache_priority": "high",
+      "intent": "answer bridge",
+      "text": "D'accord, voilà."
+    },
+    {
+      "id": "fr_fill_bridge_002",
+      "type": "filler_bridge",
+      "cache_priority": "high",
+      "intent": "answer bridge",
+      "text": "Oui, j'ai l'information."
+    },
+    {
+      "id": "fr_fill_bridge_003",
+      "type": "filler_bridge",
+      "cache_priority": "high",
+      "intent": "answer bridge",
+      "text": "Voilà ce que je peux vous dire."
+    },
+    {
+      "id": "fr_fill_sort_001",
+      "type": "filler_sorting",
+      "cache_priority": "medium",
+      "intent": "pre-form sorting",
+      "text": "Je veux juste vous poser une petite question avant."
+    },
+    {
+      "id": "fr_fill_sort_002",
+      "type": "filler_sorting",
+      "cache_priority": "medium",
+      "intent": "pre-form sorting",
+      "text": "Avant de vous envoyer le formulaire, je veux juste bien vous orienter."
+    },
+    {
+      "id": "fr_fill_repair_001",
+      "type": "filler_repair",
+      "cache_priority": "medium",
+      "intent": "uncertainty repair",
+      "text": "Je ne veux pas deviner."
+    },
+    {
+      "id": "fr_fill_repair_002",
+      "type": "filler_repair",
+      "cache_priority": "medium",
+      "intent": "clarification",
+      "text": "Je vais vous poser ça simplement."
+    },
+    {
+      "id": "fr_fill_repair_003",
+      "type": "filler_repair",
+      "cache_priority": "medium",
+      "intent": "clarification",
+      "text": "Je veux juste être certaine de vous donner le bon renseignement."
+    },
+    {
+      "id": "fr_fill_close_001",
+      "type": "filler_close",
+      "cache_priority": "medium",
+      "intent": "soft next step",
+      "text": "La prochaine étape est assez simple."
+    },
+    {
+      "id": "fr_fill_close_002",
+      "type": "filler_close",
+      "cache_priority": "medium",
+      "intent": "soft next step",
+      "text": "On peut faire ça une étape à la fois."
+    },
+    {
+      "id": "fr_fill_close_003",
+      "type": "filler_close",
+      "cache_priority": "medium",
+      "intent": "soft next step",
+      "text": "Je vais vous guider tranquillement."
+    },
+    {
+      "id": "fr_fill_hold_001",
+      "type": "filler_hold",
+      "cache_priority": "medium",
+      "intent": "brief hold",
+      "text": "Une seconde."
+    },
+    {
+      "id": "fr_fill_hold_002",
+      "type": "filler_hold",
+      "cache_priority": "medium",
+      "intent": "brief hold",
+      "text": "Je vérifie."
+    }
+  ],
+  "architecture": "cached_first_latency_shield",
+  "target_count": "50-80 seed lines first, then expand toward comprehensive situation coverage",
+  "locked_speed_policy": {
+    "quick_bridge": "0.75",
+    "composed_premium": "0.65"
+  },
+  "required_coverage_categories": [
+    "greeting_and_receipt",
+    "thinking_checking_looking",
+    "clarification",
+    "empathy_reassurance",
+    "booking_registration",
+    "pricing_financing",
+    "location_campus",
+    "dates_availability",
+    "current_student_support",
+    "trained_practitioner_orientation",
+    "uncertainty_missing_information",
+    "human_handoff",
+    "graceful_deflection",
+    "error_recovery",
+    "confirmation_next_step",
+    "interruption_cancellation_recovery"
+  ],
+  "variant_axes": {
+    "duration": [
+      "~1s",
+      "~2s",
+      "~4s",
+      "~6s"
+    ],
+    "tone": [
+      "warm",
+      "professional",
+      "intimate",
+      "cheerful",
+      "apologetic",
+      "concise",
+      "premium_composed"
+    ],
+    "speed": [
+      "0.75 quick bridge",
+      "0.65 composed/premium"
+    ],
+    "locale": [
+      "fr-CA first"
+    ]
+  }
+}
