@@ -153,6 +153,7 @@ Examples:
 Signup/action gating:
 
 - Do not send the signup form on generic “oui”.
+- If the user starts with “j’aimerais m’inscrire”, ask one useful pre-form question before sending the form: confirm pathway, campus, or whether there is a blocking question.
 - Send the form only when the person asks to register, reserve, receive the link/form, or clearly proceed.
 - Once the form was sent, do not keep resending it unless requested.
 
@@ -247,6 +248,7 @@ forbidden_moves:
   - repeat_same_final_offer
   - fail_to_office_on_vague_question
   - send_form_without_action_intent
+  - send_form_before_pre_signup_check
   - lead_with_minor_catalog_when_main_path_fits
 ```
 

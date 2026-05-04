@@ -694,6 +694,8 @@ def _conversation_context(user_data) -> str:
         parts.append(f"Prénom du client: {facts['name']}. Utiliser le prénom rarement, seulement quand ça confirme ou guide naturellement; jamais à chaque réponse.")
     if facts.get("signup_link_sent"):
         parts.append("Le lien/formulaire d'inscription vient déjà d'être transmis. Ne pas le reproposer tout de suite sauf si la personne le redemande clairement; proposer plutôt de répondre aux questions ou clarifier le contenu/horaire.")
+    if facts.get("pre_signup_question_asked") and not facts.get("signup_link_sent"):
+        parts.append("La personne a demandé à s'inscrire, mais Scarlett doit confirmer au moins une chose utile avant d'envoyer le formulaire: parcours visé, campus, ou s'il reste une question. Ne transmettre le formulaire que si la personne confirme après cette étape.")
     if user_data.get("pending_offer"):
         parts.append(f"Dernière offre active: {user_data['pending_offer']}. Si la personne répond seulement oui/ok, continuer avec cette offre sans répéter le choix.")
     last = user_data.get("recent_turns", [])[-3:]
@@ -973,7 +975,40 @@ def _lost_reply(user_data) -> str:
 
 def _is_enrolment_query(question: str) -> bool:
     q = _norm_chat(question)
-    return any(x in q for x in ["inscription", "inscrire", "m'inscrire", "minscrire", "formulaire", "lien", "site web", "réserver", "reserver", "ma place", "place"])
+    return any(x in q for x in [
+        "inscription", "inscrire", "m'inscrire", "minscrire", "m inscrire", "formulaire", "lien", "site web",
+        "réserver", "reserver", "ma place", "place", "j'aimerais m'inscrire", "jaimerais minscrire",
+        "je veux m'inscrire", "veux minscrire", "prêt à m'inscrire", "prete a minscrire", "prête à m'inscrire"
+    ])
+
+
+def _needs_pre_signup_check(user_data, question: str) -> bool:
+    """Before sending the form, ask at least one useful sorting/satisfaction question."""
+    facts = user_data.setdefault("facts", {})
+    if facts.get("signup_link_sent"):
+        return False
+    if facts.get("pre_signup_question_asked") and _is_affirmation(question):
+        return False
+    return _is_enrolment_query(question) and not facts.get("pre_signup_question_asked")
+
+
+def _pre_signup_check_reply(user_data, question: str) -> str:
+    facts = user_data.setdefault("facts", {})
+    facts["pre_signup_question_asked"] = True
+    status = facts.get("student_status")
+    campus = facts.get("campus")
+    if status == "new":
+        base = "Parfait. Avant de vous envoyer le formulaire, je veux juste m’assurer que vous partez dans le bon parcours : pour débuter, ce serait le **Niveau 1 | Praticien en massothérapie**."
+    elif status == "trained":
+        base = "Parfait. Avant de vous envoyer le formulaire, je veux juste confirmer le bon parcours : comme vous avez déjà une formation, on regarde généralement le **Niveau 2** en premier."
+    else:
+        base = "Parfait. Avant de vous envoyer le formulaire, je veux juste vous placer dans le bon parcours pour éviter de vous envoyer au mauvais endroit."
+    if campus:
+        follow = f"Vous voulez que je vous l’envoie pour {campus}, et il ne vous reste pas de question sur le programme avant de commencer ?"
+    else:
+        follow = "Vous commencez en massage, vous êtes déjà étudiant à l’AMS, ou vous avez déjà une formation ?"
+    user_data["pending_offer"] = "Si la personne confirme après cette question pré-inscription, transmettre le formulaire d'inscription officiel. Si elle donne son statut/campus ou pose une question, répondre d'abord puis confirmer avant le formulaire."
+    return f"{base}\n\n{follow}"
 
 
 def _direct_flow_reply(user_data, question: str):
@@ -993,8 +1028,11 @@ def _direct_flow_reply(user_data, question: str):
         return None
 
     if wants_signup:
+        if _needs_pre_signup_check(user_data, question):
+            return (_pre_signup_check_reply(user_data, question), None, None)
         user_data.pop("pending_offer", None)
         facts["signup_link_sent"] = True
+        facts.pop("pre_signup_question_asked", None)
         user_data["pending_offer"] = "Aider la personne avec une question précise sur le formulaire, le campus ou le paiement; ne pas retransmettre le formulaire sauf demande claire."
         return (
             f"{prefix} Pour commencer officiellement, le plus simple est de remplir le formulaire d’inscription AMS.\n\n"
@@ -1087,6 +1125,8 @@ def _expand_followup_question(user_data, question: str) -> str:
             return "Explique les modalités pour une personne en France qui veut étudier au Niveau 1: théorie 100 % en ligne, pratique à faire au Québec sur campus pendant les périodes intensives, bénéfices du format hybride, et pose une question ouverte pour savoir ce qui compte le plus pour elle (voyage, rythme, budget, reconnaissance). Ne donne pas le formulaire sauf si elle demande clairement à s'inscrire."
         if any(x in p for x in ["parcours principal", "déjà praticienne", "deja praticienne", "déjà praticien", "deja praticien", "niveau 2 600 h", "niveau 2 600"]):
             return "Présente le parcours principal pour quelqu'un déjà praticien en massage, dans cet ordre: Niveau 2 600 h à 7 345 $ d'abord (sportif ou anti-stress), puis Niveau 3 Orthothérapie avancée, puis cours à la carte seulement comme compléments. Demande ensuite si son objectif est plutôt douleur/mouvement/sport ou stress/détente thérapeutique."
+        if any(x in p for x in ["question pré-inscription", "pre inscription", "pré-inscription", "transmettre le formulaire d'inscription officiel"]):
+            return "La personne confirme après la question pré-inscription. Transmets maintenant le formulaire d'inscription officiel AMS, rappelle brièvement qu'elle pourra choisir le campus dans le formulaire, et reste disponible pour une question sur programme/campus/paiement."
         if any(x in p for x in ["details", "détails", "prix", "contenu"]):
             return "Donne les détails du parcours habituel pour débuter: Niveau 1 | Praticien en massothérapie, prix, durée, format hybride, contenu principal, et prochaine étape simple. Ne propose pas le formulaire sauf demande claire d'inscription."
         return pending

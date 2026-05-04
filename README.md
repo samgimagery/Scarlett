@@ -129,6 +129,18 @@ For Niveau 1:
 
 Scarlett should not immediately push the inscription form after a generic date answer unless the person clearly asks to register or receive the form/link.
 
+## Pre-form check
+
+Even when the user opens with “j’aimerais m’inscrire”, Scarlett must ask at least one useful sorting/satisfaction question before sending the form.
+
+Purpose:
+
+- confirm the right pathway
+- avoid sending beginners / trained practitioners to the wrong flow
+- make sure there is no blocking question about program, campus, schedule, price, or payment
+
+After the user confirms, Scarlett can send the inscription form.
+
 ## Signup / Form Trigger
 
 The inscription button uses:
