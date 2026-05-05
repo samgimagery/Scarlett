@@ -29,7 +29,16 @@ def _money(amount: int) -> str:
 
 def _mentions_price(q: str) -> bool:
     return any(x in q for x in [
-        "prix", "combien", "cout", "coute", "tarif", "total", "frais", "payer", "paiement", "financement", "finance", "versement"
+        "prix", "combien", "cout", "coute", "tarif", "total", "frais", "payer", "paiement", "financement", "finance", "versement",
+        "moyens", "budget", "cher", "chere", "chère", "trop eleve", "trop élevé", "pas capable", "pas les moyens"
+    ])
+
+
+def _mentions_affordability_stress(q: str) -> bool:
+    return any(x in q for x in [
+        "pas les moyens", "pas de moyens", "j'ai pas les moyens", "jai pas les moyens", "je n'ai pas les moyens",
+        "trop cher", "trop chere", "trop chère", "trop eleve", "trop élevé", "c'est cher", "cest cher",
+        "pas capable", "budget", "je peux pas payer", "je ne peux pas payer"
     ])
 
 
@@ -44,13 +53,33 @@ def _mentions_financing(q: str) -> bool:
     return any(x in q for x in ["financement", "finance", "paiement", "versement", "semaine", "hebdo", "ifinance", "pret", "prêt", "marge"])
 
 
-def answer_pricing(question: str):
+def _payment_already_covered(context: str) -> bool:
+    c = _norm(context)
+    return any(x in c for x in ["104 semaine", "104 $", "ifinance", "paiement echelonne", "marge de credit", "banque"])
+
+
+def answer_pricing(question: str, conversation_context: str = ""):
     q = _norm(question)
     if not _mentions_price(q):
         return None
 
     wants_combo = _mentions_combo(q) or ("niveau 1" in q and "niveau 2" in q) or "total" in q
     wants_financing = _mentions_financing(q)
+    affordability_stress = _mentions_affordability_stress(q)
+
+    if affordability_stress:
+        if _payment_already_covered(conversation_context):
+            return (
+                "Je comprends. C’est beaucoup d’argent, et je ne veux pas vous faire tourner en rond.\n\n"
+                "Les options de paiement connues ont déjà été couvertes. Voulez-vous que je détaille une option précise, ou est-ce que je peux vous aider avec autre chose ?"
+            )
+        return (
+            "Je comprends. C’est beaucoup d’argent, et c’est normal de vouloir vérifier si c’est réaliste avant d’avancer.\n\n"
+            f"Pour le **Niveau 1**, les options connues sont :\n"
+            f"- paiement échelonné à partir de {LEVEL_1_WEEKLY} $ / semaine\n"
+            "- financement possible via IFINANCE, votre banque ou une marge de crédit partenaire\n\n"
+            "Si ces options ne conviennent pas, je ne veux pas vous faire tourner en rond. Voulez-vous que je vous aide avec autre chose ?"
+        )
 
     # Let specific non-price content questions go through RAG.
     if not wants_combo and not wants_financing and not any(x in q for x in ["niveau 1", "niveau 2", "niveau 3", "niveaux"]):
@@ -78,16 +107,18 @@ def answer_pricing(question: str):
 
     if wants_financing:
         lines.append("")
-        lines.append("Pour le paiement, AMS indique :")
-        lines.append(f"- Niveau 1 : à partir de {LEVEL_1_WEEKLY} $ / semaine")
-        lines.append(f"- Niveau 2 : à partir de {LEVEL_2_WEEKLY} $ / semaine")
-        lines.append(f"- Niveau 3 : à partir de {LEVEL_3_WEEKLY} $ / semaine")
-        lines.append("- paiement échelonné sans frais ni intérêt possible")
-        lines.append("- financement possible via IFINANCE, votre banque ou des marges de crédit partenaires")
+        lines.append("Pour le paiement, les options connues sont :")
+        if "niveau 2" in q and "niveau 1" not in q:
+            lines.append(f"- paiement échelonné à partir de {LEVEL_2_WEEKLY} $ / semaine")
+        elif "niveau 3" in q and "niveau 1" not in q:
+            lines.append(f"- paiement échelonné à partir de {LEVEL_3_WEEKLY} $ / semaine")
+        else:
+            lines.append(f"- paiement échelonné à partir de {LEVEL_1_WEEKLY} $ / semaine")
+        lines.append("- financement possible via IFINANCE, votre banque ou une marge de crédit partenaire")
         lines.append("")
-        lines.append("Les montants hebdomadaires peuvent varier selon l’horaire et la date d’inscription; un conseiller peut confirmer le meilleur plan.")
+        lines.append("Je peux détailler une de ces options si vous me le demandez.")
     else:
         lines.append("")
-        lines.append("Je peux aussi vous expliquer les paiements par semaine ou les options de financement si vous voulez comparer le budget.")
+        lines.append("Si vous voulez, je peux aussi vous donner les options de paiement.")
 
     return "\n".join(lines)

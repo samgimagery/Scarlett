@@ -699,6 +699,12 @@ def _conversation_context(user_data) -> str:
     if user_data.get("pending_offer"):
         parts.append(f"Dernière offre active: {user_data['pending_offer']}. Si la personne répond seulement oui/ok, continuer avec cette offre sans répéter le choix.")
     last = user_data.get("recent_turns", [])[-3:]
+    recent_payment_covered = any(
+        any(token in _repeat_norm(t.get("a", "")) for token in ["104 semaine", "ifinance", "paiement echelonne", "marge de credit", "banque"])
+        for t in last
+    )
+    if recent_payment_covered:
+        parts.append("Les options de paiement/financement ont déjà été couvertes récemment. Ne pas les réénumérer ni laisser croire qu'il y en a d'autres. Si la personne dit que c'est trop cher ou qu'elle n'a pas les moyens, répondre avec empathie et patience, puis demander si elle veut détailler une option précise ou passer à autre chose.")
     if last:
         parts.append("Anti-répétition stricte: ne jamais reprendre la même formule d'ouverture, le même paragraphe d'explication, ou la même offre finale que dans les échanges récents. Répondre à la nouvelle demande avec de l'information nouvelle ou un angle plus précis. Éviter complètement les amorces génériques déjà utilisées comme « C'est une excellente question ».")
         openings = _recent_answer_openings(last)
@@ -780,6 +786,9 @@ def _de_repeat_answer(user_data, answer: str) -> str:
     generic_openers = [
         r"^C['’]est une excellente question,?\s*(?:et c['’]est (?:tout à fait )?normal de vouloir[^.!?]*[.!?]\s*)?",
         r"^C['’]est (?:tout à fait )?normal de vouloir[^.!?]*[.!?]\s*",
+        r"^Je comprends que les détails financiers ou administratifs peuvent sembler[^.!?]*[.!?]\s*",
+        r"^Je comprends que c['’]est stressant de voir le prix total[^.!?]*[.!?]\s*",
+        r"^Je comprends\.?\s*",
         r"^Pour vous donner une idée réaliste,?\s*",
     ]
     if any("c est une excellente question" in _repeat_norm(a) for a in recent_answers):
@@ -810,6 +819,16 @@ def _de_repeat_answer(user_data, answer: str) -> str:
         return (
             "Vous avez raison — je ne vais pas répéter la même réponse.\n\n"
             "Pour répondre plus précisément à votre nouvelle question : le revenu potentiel avec le Niveau 2 dépend surtout de votre spécialisation, de votre volume de clients et de votre positionnement. Le Niveau 2 sert à vous permettre de facturer plus solidement qu’un parcours de base, mais l’AMS ne peut pas garantir un revenu précis."
+        )
+
+    payment_tokens = ["104 $", "104$", "ifinance", "paiement échelonné", "paiement echelonne", "marge de crédit", "marge de credit"]
+    payment_recent = any(any(tok in _plain_text(old).lower() for tok in payment_tokens) for old in recent_answers)
+    payment_now = any(tok in _plain_text(guarded).lower() for tok in payment_tokens)
+    affordability_now = any(tok in _repeat_norm(guarded) for tok in ["trop cher", "pas les moyens", "budget"])
+    if payment_recent and payment_now and affordability_now:
+        guarded = (
+            "Je comprends. C’est beaucoup d’argent, et je ne veux pas vous faire tourner en rond.\n\n"
+            "Les options de paiement connues ont déjà été couvertes. Voulez-vous que je détaille une option précise, ou est-ce que je peux vous aider avec autre chose ?"
         )
 
     guarded = re.sub(r"^(Cependant|Toutefois|Par contre),?\s+", "", guarded, flags=re.IGNORECASE).strip()

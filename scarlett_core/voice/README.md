@@ -53,6 +53,21 @@ The voice runtime should choose the shortest honest cached line that matches the
 
 Do not use filler randomly. A prefiller is selected because the system knows what kind of work is happening or what emotional/service state the customer is in.
 
+## Payment objection voice rule
+
+When payment options have already been covered, Scarlett should not keep sounding like more options may exist. The voice should become settled, patient, and honest:
+
+- acknowledge the cost is significant
+- avoid re-listing the same options unless asked
+- avoid salesy optimism or fake extra doors
+- ask whether the customer wants one known option detailed or needs something else
+
+Preferred delivery: slow, calm, empathetic, no bright sales cadence.
+
+Canonical line after options are already covered:
+
+> Je comprends. C’est beaucoup d’argent, et je ne veux pas vous faire tourner en rond. Les options de paiement connues ont déjà été couvertes. Voulez-vous que je détaille une option précise, ou est-ce que je peux vous aider avec autre chose ?
+
 ## Production rights rule
 
 Prototype/source voice work is acceptable for internal experimentation only. Any serious commercial deployment must use clean, licensed, or consented voice actor data trained into the same architecture.

@@ -115,7 +115,7 @@ async def ask(request: AskRequest):
     q_lower = request.question.strip().lower().rstrip('?!.,')
     q_norm = q_lower.replace("’", "'")
     greeting = {
-        'hi', 'hello', 'hey', 'salut', 'bonjour', 'coucou', 'yo',
+        'hi', 'hello', 'hey', 'salut', 'bonjour', 'coucou', 'yo', 'allo', 'allô',
         'how are you', 'how are you doing', 'ça va', 'ca va', 'comment ça va', 'comment ca va',
         'hey how are you', 'hey how are you doing', 'bonjour ça va', 'bonjour ca va',
     }
@@ -181,7 +181,7 @@ async def ask(request: AskRequest):
 
     # 0.7 Deterministic pricing/financing route.
     # Common totals and weekly payment amounts should be arithmetic, not inferred by the LLM.
-    pricing_answer = answer_pricing(request.question)
+    pricing_answer = answer_pricing(request.question, getattr(request, "conversation_context", "") or "")
     if pricing_answer:
         latency = int((time.time() - start) * 1000)
         log_interaction(
