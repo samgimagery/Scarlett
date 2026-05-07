@@ -279,6 +279,10 @@ def polish_answer(
         return answer, None
     if intent == "too_expensive" and source_layer in DETERMINISTIC_POLISH_SOURCES and answer.strip():
         return answer, None
+    if source_layer in DETERMINISTIC_POLISH_SOURCES and answer.strip() and (
+        "1 800 475-1964" in answer or "academiedemassage.com/contact" in answer
+    ):
+        return answer, None
     if intent in {"human", "julie"} and source_layer == "local_handoff_layer" and answer.strip():
         return answer, None
     scope = choose_scope(intent=intent or "", question=question, answer=answer, source_layer=source_layer)

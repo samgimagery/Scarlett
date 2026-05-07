@@ -844,6 +844,10 @@ def _de_repeat_answer(user_data, answer: str) -> str:
     if any(x in guarded_plain for x in ["je ne peux pas afficher d’information interne", "je ne peux pas afficher d'information interne"]):
         return guarded
 
+    guarded_plain_after_trim = _plain_text(guarded).lower()
+    if "1 800 475-1964" in guarded_plain_after_trim or "academiedemassage.com/contact" in guarded_plain_after_trim:
+        return guarded
+
     if any(_similar(guarded, old) >= 0.76 for old in recent_answers):
         return (
             "Vous avez raison — je ne vais pas répéter la même réponse.\n\n"

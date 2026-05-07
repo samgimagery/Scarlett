@@ -52,6 +52,7 @@ class TurnSpec:
     source_contains: list[str] = field(default_factory=list)
     intent: str | None = None
     max_similarity_to_previous: float = 0.92
+    min_confidence: float | None = 0.75
 
 
 @dataclass
@@ -171,6 +172,58 @@ SCENARIOS: list[Scenario] = [
             TurnSpec("prendre rendez vous pour confirmer", contains=["rendez-vous", "1 800 475-1964"], source_contains=["local_handoff_layer"], intent="human"),
         ],
     ),
+    Scenario(
+        id="financing_objection_then_safe_contact",
+        persona="Price-sensitive caller asks payment plan, financing, then asks Scarlett to arrange it",
+        turns=[
+            TurnSpec("paiement par semaine niveau un", contains=["104", "semaine"], source_contains=["local_pricing_layer"], min_confidence=None),
+            TurnSpec("est ce quil y a du financement", contains=["IFINANCE", "banque"], source_contains=["local_pricing_layer"], intent="financing"),
+            TurnSpec("ok organise le financement pour moi", contains=["1 800 475-1964"], forbids=["financement confirmé", "je l'ai organisé"], max_similarity_to_previous=1.0),
+        ],
+    ),
+    Scenario(
+        id="scope_identity_then_programs",
+        persona="Caller asks who Scarlett is, scope, then a normal program question",
+        turns=[
+            TurnSpec("tu es qui", contains=["Scarlett", "réception"], intent="identity"),
+            TurnSpec("tu peux m aider avec quoi", contains=["formations", "prix", "campus"], intent="what_can_help"),
+            TurnSpec("je veux devenir massothérapeute", contains=["Niveau 1"], intent="beginner_path"),
+        ],
+    ),
+    Scenario(
+        id="prerequisites_and_level_switching",
+        persona="Caller asks prerequisites and attempts to jump levels",
+        turns=[
+            TurnSpec("prerequis pour niveau 2", contains=["Niveau 1"], intent="prerequisites"),
+            TurnSpec("est ce que je peux sauter au niveau deux", contains=["Niveau 2"], intent="compare_paths"),
+            TurnSpec("et niveau trois", contains=["Niveau 3"], max_similarity_to_previous=1.0, intent="price_n3", min_confidence=None),
+        ],
+    ),
+    Scenario(
+        id="fake_booking_and_email_requests",
+        persona="Caller asks Scarlett to perform external actions; Scarlett must route safely",
+        turns=[
+            TurnSpec("réserve moi une place demain", contains=["avant", "formulaire"], forbids=["j'ai réservé", "réservé pour vous"], max_similarity_to_previous=1.0),
+            TurnSpec("envoie moi le courriel maintenant", contains=["contact"], source_contains=["local_handoff_layer"], forbids=["courriel envoyé", "je viens d'envoyer"], min_confidence=None),
+        ],
+    ),
+    Scenario(
+        id="typos_short_forms_price_and_contact",
+        persona="Messy Telegram shorthand should still hit deterministic paths",
+        turns=[
+            TurnSpec("cb ca coute n2", contains=["7 345", "111"], source_contains=["local_pricing_layer"], intent="price_n2"),
+            TurnSpec("prix n3?", contains=["3 595", "97"], source_contains=["local_pricing_layer"], intent="price_n3"),
+            TurnSpec("info email svp", contains=["contact"], source_contains=["local_handoff_layer"], min_confidence=None),
+        ],
+    ),
+    Scenario(
+        id="unknown_city_to_contact",
+        persona="Caller gives a city outside known campus list and needs a safe next step",
+        turns=[
+            TurnSpec("je suis a sherbrooke campus proche", contains=["Sherbrooke", "campus"], max_similarity_to_previous=1.0),
+            TurnSpec("qui peut confirmer le meilleur campus", contains=["1 800 475-1964"], source_contains=["local_handoff_layer"], min_confidence=None),
+        ],
+    ),
 ]
 
 
@@ -218,8 +271,8 @@ def check_turn(spec: TurnSpec, result: dict[str, Any], previous_answer: str | No
         add("expected intent observed", intent == spec.intent, f"intent={intent!r}, expected={spec.intent!r}", "classifier" if intent != spec.intent else None)
 
     conf = voice.get("classification_confidence")
-    if conf is not None:
-        add("classification confidence not low", float(conf) >= 0.75, f"confidence={conf}", "classifier" if float(conf) < 0.75 else None)
+    if conf is not None and spec.min_confidence is not None:
+        add("classification confidence not low", float(conf) >= spec.min_confidence, f"confidence={conf}", "classifier" if float(conf) < spec.min_confidence else None)
 
     if previous_answer:
         sim = similarity(previous_answer, answer)

@@ -67,7 +67,20 @@ def answer_pricing(question: str, conversation_context: str = ""):
 
     wants_combo = _mentions_combo(q) or ("niveau 1" in q and "niveau 2" in q) or "total" in q
     wants_financing = _mentions_financing(q)
+    wants_financing_action = wants_financing and any(x in q for x in [
+        "organise", "organiser", "arrange", "arranger", "mets le financement", "mettre le financement",
+        "faire le financement", "demande de financement", "appliquer", "application"
+    ])
     affordability_stress = _mentions_affordability_stress(q)
+
+    if wants_financing_action:
+        return (
+            "Je peux vous orienter, mais je ne vais pas dire que le financement est organisé tant qu’une personne de l’AMS ne l’a pas confirmé.\n\n"
+            "Pour avancer officiellement :\n"
+            "- Téléphone : **1 800 475-1964**\n"
+            "- Page contact : https://www.academiedemassage.com/contact/\n\n"
+            "Message simple : « Bonjour, j’aimerais confirmer les options de financement pour mon inscription. »"
+        )
 
     if affordability_stress:
         if _payment_already_covered(conversation_context):

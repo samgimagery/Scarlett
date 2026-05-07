@@ -100,7 +100,8 @@ def answer_handoff(question: str, conversation_context: str = ""):
     asks_julie = "julie" in q
     asks_campus_contact = _has_any(q,
         "contact campus", "joindre le campus", "appeler le campus", "numero du campus", "numéro du campus",
-        "telephone du campus", "téléphone du campus", "parler au campus", "contact pour le campus"
+        "telephone du campus", "téléphone du campus", "parler au campus", "contact pour le campus",
+        "confirmer le meilleur campus", "confirmer le campus", "meilleur campus", "campus le plus adapte", "campus le plus adapté"
     )
     asks_callback = _has_any(q,
         "rappel", "me rappeler", "me rappelle", "qu'on me rappelle", "on me rappelle", "etre rappele", "être rappelé",
@@ -110,7 +111,8 @@ def answer_handoff(question: str, conversation_context: str = ""):
     asks_send_info = _has_any(q,
         "envoyer de l'information", "envoyer des informations", "envoyez moi l'information", "envoie moi l'information",
         "recevoir de l'information", "recevoir les informations", "info par courriel", "information par courriel",
-        "envoyer par courriel", "m'envoyer les infos", "m envoyer les infos", "documentation", "brochure"
+        "envoyer par courriel", "envoie moi le courriel", "envoyez moi le courriel", "m'envoyer les infos",
+        "m envoyer les infos", "info email", "information email", "par email", "documentation", "brochure"
     )
     asks_human = _has_any(q,
         "parler a quelqu", "parler à quelqu", "parler a une personne", "parler à une personne", "parler avec une personne",

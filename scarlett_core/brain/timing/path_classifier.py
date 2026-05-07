@@ -126,7 +126,7 @@ def rule_scores(norm: str, tokens: set[str]) -> dict[str, tuple[float, str]]:
 
     if _has_any(norm, "processus", "ca se passe comment", "comment on fait", "decris moi les etapes", "comment ca marche", "fonctionne comment"):
         add("how_it_works", 0.96, "rule:process_question")
-    if _has_any(norm, "jamais fait", "depuis le debut", "novice", "premiere formation", "aucune experience"):
+    if _has_any(norm, "jamais fait", "depuis le debut", "novice", "premiere formation", "aucune experience", "devenir massotherapeute", "devenir massothérapeute"):
         add("beginner_path", 0.98, "rule:beginner_stage")
     if _has_any(norm, "deja etudie", "diplome", "travaille deja", "comme masso", "une base", "continuer apres ma formation", "deja massotherapeute"):
         add("trained_path", 0.98, "rule:trained_stage")
@@ -136,7 +136,7 @@ def rule_scores(norm: str, tokens: set[str]) -> dict[str, tuple[float, str]]:
         add("current_student", 0.97, "rule:student_support_emotional")
     if _has_any(norm, "pas quel niveau", "quelle formation prendre", "choisir le bon parcours", "bon depart", "melange", "par ou commencer"):
         add("unsure_start", 0.96, "rule:unsure_start")
-    if _has_any(norm, "difference entre", "versus", "choisir entre", "sauter au deuxieme", "niveau deux est pour moi", "n1 et n2"):
+    if _has_any(norm, "difference entre", "versus", "choisir entre", "sauter au deuxieme", "sauter au deuxième", "sauter au niveau deux", "sauter au niveau 2", "niveau deux est pour moi", "n1 et n2"):
         add("compare_paths", 0.97, "rule:compare_levels")
 
     priceish = _has_any(norm, "combien", "prix", "tarif", "cout", "coûte", "coute", "revient")
