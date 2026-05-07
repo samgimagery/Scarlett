@@ -88,6 +88,7 @@ def run_turn(url: str, user_data: dict[str, Any], question: str) -> dict[str, An
         "sources": data.get("sources", []),
         "model": data.get("model"),
         "latency_ms": data.get("latency_ms"),
+        "voice": data.get("voice"),
     }
 
 

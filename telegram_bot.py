@@ -836,6 +836,12 @@ def _de_repeat_answer(user_data, answer: str) -> str:
         guarded = re.sub(pattern, "", guarded, count=1).strip()
         guarded = re.sub(r"^(?:<br\s*/?>|\s|\n)+", "", guarded).strip()
 
+    # Safety/contact answers are allowed to repeat when the caller repeats an
+    # unsafe/internal request. Do not replace them with a generic anti-repeat
+    # message that accidentally drops the refusal.
+    if any(x in guarded_plain for x in ["je ne peux pas afficher d’information interne", "je ne peux pas afficher d'information interne"]):
+        return guarded
+
     if any(_similar(guarded, old) >= 0.76 for old in recent_answers):
         return (
             "Vous avez raison — je ne vais pas répéter la même réponse.\n\n"
