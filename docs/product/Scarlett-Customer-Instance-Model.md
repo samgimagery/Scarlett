@@ -296,3 +296,61 @@ They cannot easily copy:
 - voice rhythm and live conversation timing
 
 Scarlett is the system around the model.
+
+## Rule portability boundary
+
+Updated: 2026-05-07
+
+Every customer instance should separate reusable engine rules from customer-specific rules.
+
+**Reusable in Scarlett Core**
+
+- service loop
+- no lazy website deflection
+- escalation discipline
+- lightweight conversation memory
+- anti-repeat behaviour
+- goal-based advisor bundle mechanism
+- one-next-step guidance
+- regression harness structure
+- review loop from real conversations
+
+**Specific to each customer instance**
+
+- business catalogue
+- exact products/services
+- prices and fees
+- locations/service areas
+- booking or registration links
+- exact availability/dates when known
+- industry language
+- customer-specific bundles
+- business-specific escalation policy
+
+For a new company, the process is:
+
+1. ingest sources
+2. classify the catalogue
+3. identify customer goals and natural clusters
+4. create customer-specific bundles under the shared bundle mechanism
+5. add deterministic facts for high-risk answers
+6. write regression tests for every bundle and escalation rule
+7. observe real questions and promote repeated friction into better service paths
+
+The AMS work is a prototype customer instance, not hard-coded product strategy. The lesson is portable; the massage curriculum content is not.
+
+## Customer-instance pause rule
+
+Updated: 2026-05-07
+
+After a customer instance reaches a stable advisor baseline, pause before adding more rules.
+
+A stable baseline means:
+
+- core service rules are working
+- high-risk facts are deterministic
+- main commercial/advisor paths are regression-tested
+- short follow-ups preserve context
+- source/vault docs match code behaviour
+
+Next rules should come from real conversation friction, not speculative polishing.

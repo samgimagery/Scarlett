@@ -30,7 +30,8 @@ def _money(amount: int) -> str:
 def _mentions_price(q: str) -> bool:
     return any(x in q for x in [
         "prix", "combien", "cout", "coute", "tarif", "total", "frais", "payer", "paiement", "financement", "finance", "versement",
-        "moyens", "budget", "cher", "chere", "chère", "trop eleve", "trop élevé", "pas capable", "pas les moyens"
+        "moyens", "budget", "cher", "chere", "chère", "trop eleve", "trop élevé", "pas capable", "pas les moyens",
+        "au dessus de mes moyens", "depasse mon budget", "dépasse mon budget", "budget serre", "budget serré"
     ])
 
 
@@ -38,7 +39,8 @@ def _mentions_affordability_stress(q: str) -> bool:
     return any(x in q for x in [
         "pas les moyens", "pas de moyens", "j'ai pas les moyens", "jai pas les moyens", "je n'ai pas les moyens",
         "trop cher", "trop chere", "trop chère", "trop eleve", "trop élevé", "c'est cher", "cest cher",
-        "pas capable", "budget", "je peux pas payer", "je ne peux pas payer"
+        "pas capable", "budget", "je peux pas payer", "je ne peux pas payer", "au dessus de mes moyens",
+        "depasse mon budget", "dépasse mon budget", "budget serre", "budget serré"
     ])
 
 
@@ -71,18 +73,27 @@ def answer_pricing(question: str, conversation_context: str = ""):
         if _payment_already_covered(conversation_context):
             return (
                 "Je comprends. C’est beaucoup d’argent, et je ne veux pas vous faire tourner en rond.\n\n"
-                "Les options de paiement connues ont déjà été couvertes. Voulez-vous que je détaille une option précise, ou est-ce que je peux vous aider avec autre chose ?"
+                "Les options de paiement connues ont déjà été couvertes. Si le parcours complet reste trop lourd pour l’instant, AMS a aussi des **cours à la carte / formations continues** avec un engagement plus léger — certains commencent autour de **99 $**.\n\n"
+                "Vous préférez que je détaille une option de paiement précise, ou que je vous montre les cours plus courts et moins chers ?"
             )
         return (
             "Je comprends. C’est beaucoup d’argent, et c’est normal de vouloir vérifier si c’est réaliste avant d’avancer.\n\n"
             f"Pour le **Niveau 1**, les options connues sont :\n"
             f"- paiement échelonné à partir de {LEVEL_1_WEEKLY} $ / semaine\n"
             "- financement possible via IFINANCE, votre banque ou une marge de crédit partenaire\n\n"
-            "Si ces options ne conviennent pas, je ne veux pas vous faire tourner en rond. Voulez-vous que je vous aide avec autre chose ?"
+            "Si vous voulez un engagement plus léger avant le parcours complet, AMS a aussi des **cours à la carte / formations continues** — par exemple aromathérapie, techniques de détente, sport, douleur/mobilité ou spa. Certains commencent autour de **99 $**.\n\n"
+            "Vous préférez que je vous montre les options de paiement, ou des cours plus courts et moins chers ?"
         )
 
+    level_markers = [
+        "niveau 1", "niveau un", "n1", "premier niveau",
+        "niveau 2", "niveau deux", "n2", "deuxieme niveau", "deuxième niveau", "second niveau",
+        "niveau 3", "niveau trois", "n3", "troisieme niveau", "troisième niveau", "dernier niveau",
+        "niveaux",
+    ]
+
     # Let specific non-price content questions go through RAG.
-    if not wants_combo and not wants_financing and not any(x in q for x in ["niveau 1", "niveau 2", "niveau 3", "niveaux"]):
+    if not wants_combo and not wants_financing and not any(x in q for x in level_markers):
         return None
 
     lines = []
@@ -97,9 +108,11 @@ def answer_pricing(question: str, conversation_context: str = ""):
         lines.append("")
         lines.append("Les frais administratifs d’inscription sont de 100 $ pour les programmes professionnels.")
     else:
-        if "niveau 3" in q:
+        asks_n3 = any(x in q for x in ["niveau 3", "niveau trois", "n3", "troisieme niveau", "troisième niveau", "dernier niveau"])
+        asks_n2 = any(x in q for x in ["niveau 2", "niveau deux", "n2", "deuxieme niveau", "deuxième niveau", "second niveau"])
+        if asks_n3:
             lines.append(f"Le **Niveau 3 | Orthothérapie avancée** est à {_money(LEVEL_3_PRICE)}, ou à partir de {LEVEL_3_WEEKLY} $ / semaine.")
-        elif "niveau 2" in q:
+        elif asks_n2:
             lines.append(f"Le **Niveau 2** est à {_money(LEVEL_2_PRICE)}, ou à partir de {LEVEL_2_WEEKLY} $ / semaine.")
         else:
             lines.append(f"Le **Niveau 1 | Praticien en massothérapie** est à {_money(LEVEL_1_PRICE)}, ou à partir de {LEVEL_1_WEEKLY} $ / semaine.")
@@ -108,9 +121,9 @@ def answer_pricing(question: str, conversation_context: str = ""):
     if wants_financing:
         lines.append("")
         lines.append("Pour le paiement, les options connues sont :")
-        if "niveau 2" in q and "niveau 1" not in q:
+        if any(x in q for x in ["niveau 2", "niveau deux", "n2", "deuxieme niveau", "deuxième niveau"]) and "niveau 1" not in q:
             lines.append(f"- paiement échelonné à partir de {LEVEL_2_WEEKLY} $ / semaine")
-        elif "niveau 3" in q and "niveau 1" not in q:
+        elif any(x in q for x in ["niveau 3", "niveau trois", "n3", "troisieme niveau", "troisième niveau"]) and "niveau 1" not in q:
             lines.append(f"- paiement échelonné à partir de {LEVEL_3_WEEKLY} $ / semaine")
         else:
             lines.append(f"- paiement échelonné à partir de {LEVEL_1_WEEKLY} $ / semaine")

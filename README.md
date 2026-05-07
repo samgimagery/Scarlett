@@ -2,7 +2,7 @@
 
 Scarlett is the Telegram receptionist for the Académie de Massage Scientifique (AMS).
 
-Status: locked as the correct AMS receptionist baseline as of 2026-04-30.
+Status: locked as the correct AMS receptionist baseline as of 2026-04-30; hardened live checkpoint as of 2026-05-07.
 
 Scarlett is not a general chatbot, search engine, or file browser. She is a warm French-first receptionist that answers from the AMS knowledge vault and guides prospective students through a progressive service flow.
 
@@ -180,11 +180,38 @@ These sit before general RAG/LLM generation:
   - 1+2 / 1+2+3 arithmetic
   - weekly financing references
   - payment/financing answer pattern
+  - budget-objection handling with lower-commitment options
 
 - `continuing_ed_layer.py`
   - à-la-carte course list
   - price/hour/format snippets
+  - lower-cost / trial-course routing
+  - short-course and workshop routing
   - prevents “I don’t have the list” failures
+
+- `handoff_layer.py`
+  - human / adviser contact requests
+  - callback and rendez-vous requests
+  - send-info-by-email requests
+  - campus contact requests
+  - Julie / named-person handoff
+  - gives official AMS contact paths without pretending Scarlett booked, sent, or transferred anything
+
+
+## Scarlett Brain v1
+
+Scarlett Brain is the product boundary around every answer:
+
+` sources → vault → facts → retrieval → answer → review `
+
+Current implementation:
+
+- `scarlett_core/brain/` — contract, per-answer traces, review queue
+- `GET /brain/contract` — returns the Brain contract
+- `GET /brain/review-queue` — returns weak answers queued for tuning
+- `POST /ask` — preserves the locked AMS flow while emitting Brain traces and review items
+
+Weak answers are queued locally in `brain_review_queue.jsonl` so corrections can become deterministic facts, service rules, vault fixes, or test cases.
 
 ## Runtime Architecture
 
@@ -197,7 +224,8 @@ Request path:
 5. deterministic local layers
    - location
    - pricing/financing
-   - à-la-carte list
+   - à-la-carte / continuing education
+   - human handoff / contact
 6. vault search via `mcp_client.py`
    - Smart Connections MCP when available
    - local lexical fallback
@@ -213,7 +241,8 @@ Request path:
 - `mcp_client.py` — Smart Connections + local lexical retrieval/ranking
 - `location_layer.py` — fixed campus/location answers
 - `pricing_layer.py` — deterministic prices, totals, financing
-- `continuing_ed_layer.py` — deterministic à-la-carte list
+- `continuing_ed_layer.py` — deterministic à-la-carte list and lower-commitment routing
+- `handoff_layer.py` — deterministic official-contact / callback / send-info / campus-contact answers
 - `config.py` — AMS vault path, model, language, service port
 - `ollama_client.py` — Ollama generation
 - `logger.py` — SQLite interaction logging
@@ -270,9 +299,28 @@ AMS is the locked baseline for “correct receptionist behaviour,” especially 
 
 Important sequencing nuance: à-la-carte courses are valid offers, not hidden. They should simply be sequenced intelligently — not first when the main path fits better, but offered when the customer asks for a technique, is a current student/customer adding training, needs continuing education, or after the main path has been oriented.
 
+## Current Hardening Checkpoint
+
+As of 2026-05-07, the live hardening checkpoint includes:
+
+- router spine repair for price, programme, content, signup, repair, human, and aromatherapy follow-up routes
+- pricing expansion for Niveau 1, Niveau 2, Niveau 3, totals, weekly payments, and financing wording
+- lower-cost / continuing-ed routing for “too expensive”, trial-course, short-course, and workshop phrasing
+- handoff family for human, callback, send-info, campus-contact, and Julie/named-person requests
+- regression harness coverage for all of the above
+
+Latest verification gates:
+
+- path classifier harness: `500/500`
+- held-out utterance eval: `250/250`
+- realistic conversation batch: `56` turns, `0` low-confidence rows
+- live trust regression: `15` turns
+
+Next priority: multi-turn harness v2 for long, messy conversations with context carryover, corrections, objections, and no-loop assertions.
+
 ## Locked GitHub Baseline
 
-As of the 2026-04-30 night wrap, the AMS receptionist baseline is committed and pushed to GitHub:
+As of the 2026-04-30 night wrap, the AMS receptionist baseline was committed and pushed to GitHub:
 
 - Repository: `https://github.com/samgimagery/Scarlett`
 - Branch: `main`

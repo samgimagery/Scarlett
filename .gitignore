@@ -3,11 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 .venv/
+.voice-clone-env/
 venv/
 .env
 .env.*
 
 # Runtime data
+brain_review_queue.jsonl
+scarlett_core/brain/**/reports/
 *.db
 *.sqlite
 *.sqlite3
@@ -44,6 +47,7 @@ secrets.*
 
 # Backups / scratch
 *.backup
+*.backup-*
 *.bak
 *.tmp
 
@@ -60,3 +64,4 @@ live_conversation_v2.py
 # Scarlett bench generated/vendor artifacts
 orpheus_bench/outputs/
 orpheus_bench/external/
+orpheus_bench/models/

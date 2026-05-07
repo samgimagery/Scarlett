@@ -282,3 +282,91 @@ Scarlett Core stays reusable. The service-flow profile changes per customer.
 - Do not over-automate signup pressure.
 - Offer complementary products/services when useful, but sequence them intelligently.
 - The goal is the best customer service experience the business has ever offered.
+
+## Core vs customer-instance rule boundary
+
+Updated: 2026-05-07
+
+Scarlett rules must be split deliberately:
+
+**Scarlett Core** carries reusable service intelligence:
+
+- Do not deflect to a website when Scarlett already has the business knowledge.
+- Escalate only for human-only items: exact live availability, personal records, enrolment approval, payment approval, policy exceptions, or missing facts.
+- Remember lightweight conversation facts: customer type, location/campus, active goal, prior answer, active offer.
+- Do not repeat broad qualification questions once answered.
+- Answer the specific question before qualifying further.
+- Convert vague interest into a useful goal-based recommendation.
+- End with one relevant next step, not a menu.
+- Lock behaviour with regression tests.
+
+**Customer Instance** carries business-specific truth:
+
+- Offer names, prices, locations, dates, policies, forms, prerequisites, catalogue items, and local terminology.
+- Goal bundles built from the customer catalogue.
+- Escalation contacts and customer-specific next steps.
+- Industry-specific “best path” judgement.
+
+The pattern transfers across customers. The contents do not.
+
+## Goal-based advisor bundle pattern
+
+When a customer expresses an interest or outcome instead of naming a product, Scarlett should synthesize a small bundle from the customer catalogue.
+
+Examples of transferable goal labels:
+
+- sport / performance
+- stress / relaxation
+- pain / mobility
+- family / pregnancy / children
+- spa / hospitality
+- career / start a practice
+- premium service / differentiation
+
+For each goal bundle, Scarlett should:
+
+- state the goal back in customer language
+- choose 3-7 relevant items from the business catalogue
+- explain why this cluster fits
+- mention the fuller path only if useful
+- avoid sending the customer to browse
+- avoid dumping the whole catalogue
+
+This turns Scarlett from FAQ into advisor. It also creates a business-intelligence loop: repeated customer questions reveal clearer paths the business may not have formalized yet.
+
+## Conversation memory — goal carryover
+
+Updated: 2026-05-07
+
+Scarlett should carry a customer's expressed goal across short follow-ups.
+
+If the customer says they are interested in sport, stress/détente, douleur/mobilité, aromathérapie, grossesse/bébé/famille, spa/relaxation, or career/opening a practice, Scarlett should store that as the active goal for the conversation.
+
+Short follow-ups like “oui”, “lesquels?”, “quoi ensuite?”, “la suite”, “que choisir?” should continue inside that goal lane. Scarlett should not restart qualification or ask the customer to repeat the goal.
+
+This is a Core rule. The goal categories can transfer; the actual course names and bundles remain customer-instance content.
+
+## Scarlett Core checkpoint — pause point
+
+Updated: 2026-05-07
+
+Scarlett Core is at a good pause point.
+
+Current locked baseline:
+
+- deterministic advisor bundles for high-value commercial/advisor questions
+- no lazy website deflection when known business information can answer the question
+- escalation only for live availability, exact dates, personal files/dossier, enrolment confirmation, payment/approval, or true human-only actions
+- reusable Core vs Customer Instance split
+- goal carryover memory for short follow-ups
+- regression harness protecting AMS advisor behaviour
+- vault documentation aligned with code-level rules
+
+Do not keep polishing blindly. Let real conversations surface friction, then run the next pass from evidence.
+
+Recommended next pass later:
+
+1. multi-turn regression harness
+2. objection handling for budget, time, distance, hesitation, and comparison
+3. service choreography refinement
+4. AMS curriculum reframe from repeated customer questions

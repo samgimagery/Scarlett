@@ -69,6 +69,7 @@ PLACES: tuple[Point, ...] = (
     Point("Gatineau", 45.4770, -75.7010, ()),
     Point("Rimouski", 48.4500, -68.5300, ()),
     Point("Saguenay", 48.4280, -71.0680, ("chicoutimi", "jonquiere", "jonquière")),
+    Point("Rouyn-Noranda", 48.2399, -79.0204, ("rouyn", "rouyn noranda")),
 )
 
 
@@ -117,7 +118,7 @@ def ranked_campuses(origin: Point, limit: int = 3) -> list[tuple[Campus, float]]
 def is_campus_location_query(question: str) -> bool:
     q = _norm(question)
     campus_words = ("campus", "college", "colleges", "ecole", "ecoles", "lieu", "lieux", "adresse")
-    location_words = ("plus pres", "proche", "pres de", "chez moi", "ville", "liste", "ou sont", "adresses", "adresse")
+    location_words = ("plus pres", "proche", "pres de", "chez moi", "ville", "liste", "ou sont", "adresses", "adresse", "quels", "quelles")
     return any(w in q for w in campus_words) and any(w in q for w in location_words)
 
 

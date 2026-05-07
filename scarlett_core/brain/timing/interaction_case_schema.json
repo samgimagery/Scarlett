@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Scarlett Interaction Case",
+  "type": "object",
+  "required": ["case_id", "intent", "question", "language", "expected_route", "voice_strategy", "max_first_audio_ms", "interruptible", "prebuilt_allowed"],
+  "properties": {
+    "case_id": {"type": "string"},
+    "intent": {"type": "string"},
+    "question": {"type": "string"},
+    "language": {"type": "string"},
+    "conversation_context": {"type": ["string", "null"]},
+    "expected_route": {"type": "string"},
+    "voice_strategy": {"type": "string", "enum": ["silent_wait", "receipt", "lookup_line", "prebuilt_tile", "hybrid_tile_then_generate", "live_generate", "clarify", "handoff_or_escalate"]},
+    "max_first_audio_ms": {"type": "integer"},
+    "max_answer_ms": {"type": "integer"},
+    "interruptible": {"type": "boolean"},
+    "prebuilt_allowed": {"type": "boolean"},
+    "prebuilt_line": {"type": ["string", "null"]},
+    "fallback_if_slow": {"type": "string"},
+    "expected_answer_contains": {"type": "array", "items": {"type": "string"}},
+    "forbidden_phrases": {"type": "array", "items": {"type": "string"}},
+    "notes": {"type": "string"}
+  }
+}

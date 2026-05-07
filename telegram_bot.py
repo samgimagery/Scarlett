@@ -263,12 +263,15 @@ def _convert_ogg_to_wav(ogg_path, wav_path):
 
 def _is_greeting(question: str) -> bool:
     import re
-    q = question.lower().strip()
+    q = question.lower().strip().replace("’", "'")
     q = re.sub(r"[!?.,]+$", "", q).strip()
+    # A caller may naturally add a tiny opener before small-talk after /start.
+    # That is social small-talk, not consent to continue the pending guided offer.
+    q = re.sub(r"^(oui|yes|ok|okay|d'accord|parfait|wow|oh|ah|hey|yo)[, \-!]+", "", q).strip()
     greeting_patterns = [
-        r"^(hello|hi|hey|bonjour|salut|coucou|yo|howdy)$",
-        r"^(hello|hi|hey|bonjour|salut|coucou|yo)[, ]+(how are you|how are you doing|ça va|ca va|comment ça va|comment ca va|tu vas bien|vous allez bien)$",
-        r"^(how are you|how are you doing|ça va|ca va|comment ça va|comment ca va|tu vas bien|vous allez bien)$",
+        r"^(hello|hi|hey|bonjour|salut|coucou|yo|howdy|allo|allô)$",
+        r"^(hello|hi|hey|bonjour|salut|coucou|yo|allo|allô)[, ]+(how are you|how are you doing|ça va|ca va|comment ça va|comment ca va|comment allez[- ]?vous|comment vas[- ]?tu|tu vas bien|vous allez bien)$",
+        r"^(how are you|how are you doing|ça va|ca va|comment ça va|comment ca va|comment allez[- ]?vous|comment vas[- ]?tu|tu vas bien|vous allez bien)$",
     ]
     # Do not treat short acknowledgements like "ok" as greetings; they often mean
     # "continue the active offer" in Scarlett's guided flow.
@@ -437,7 +440,7 @@ async def lang_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text(f"Current language: {RESPONSE_LANGUAGE}\nUsage: /lang en or /lang fr")
         return
-    
+
     lang = context.args[0].lower()
     if lang in ("en", "fr"):
         context.user_data["lang"] = lang
@@ -455,26 +458,26 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle voice memo messages — transcribe, then respond."""
     lang = context.user_data.get("lang", RESPONSE_LANGUAGE)
     # Voice memos always receive voice replies.
-    
+
     # Show recording indicator
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
-    
+
     ogg_path = None
     wav_path = None
-    
+
     try:
         # Download voice file
         voice = update.message.voice or update.message.audio
         if not voice:
             await update.message.reply_text("Couldn't read that voice message.")
             return
-        
+
         file = await voice.get_file()
-        
+
         with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
             ogg_path = tmp.name
             await file.download_to_drive(ogg_path)
-        
+
         # Convert OGG to WAV for whisper
         wav_path = ogg_path.replace(".ogg", ".wav")
         await asyncio.to_thread(_convert_ogg_to_wav, ogg_path, wav_path)
@@ -484,13 +487,13 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
             shutil.copy2(ogg_path, "/tmp/scarlett_last_voice.ogg")
         except Exception:
             pass
-        
+
         # Transcribe
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
         transcript = await asyncio.to_thread(_transcribe_audio, wav_path, lang)
-        
+
         logger.info(f"Voice transcript: {transcript}")
-        
+
         if not transcript or len(transcript.strip()) < 2:
             # Keep the latest failed clip locally so we can inspect STT failures.
             try:
@@ -519,10 +522,10 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
             except OSError:
                 pass
         ogg_path = wav_path = None
-        
+
         # Now process as text — same flow as handle_message
         question = transcript.strip()
-        
+
         # Handle greetings locally; do not send small talk through RAG.
         if _is_greeting(question):
             context.user_data["welcomed"] = True
@@ -593,7 +596,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # Show typing while we query RAG
         await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
-        
+
         conv_parts = []
         conv_ctx = _conversation_context(context.user_data)
         if conv_ctx:
@@ -610,11 +613,11 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
             json=payload,
             timeout=30
         )
-        
+
         if resp.status_code != 200:
             await update.message.reply_text("Sorry, I couldn't process that right now.")
             return
-        
+
         data = resp.json()
         raw_answer = data.get("answer", "I couldn't process that question.")
         answer = _smooth_guided_offer(_chat_safe(raw_answer, strip_intro=True))
@@ -622,22 +625,22 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         answer_for_voice = _voice_text(answer)
         sources = data.get("sources", [])
         refused = data.get("refused", False)
-        
+
         # Format text response
         message = answer
         # Internal source names are never shown to customers.
-        
+
         if len(message) > 4000:
             message = message[:3997] + "..."
-        
+
         # Reply with voice (always voice reply to voice input)
         if answer and not refused:
             caption = ""
             # Internal source names are never shown to customers.
-            
+
             # Show what we heard as context
             heard_text = f"🎤 \"{transcript}\"\n\n" if len(transcript) < 100 else ""
-            
+
             await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="record_voice")
             _update_conversation_state(context.user_data, question, answer_for_voice)
             voice_path = await asyncio.to_thread(
@@ -666,11 +669,11 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text(html.escape(heard_text) + message, parse_mode="HTML")
         else:
             await update.message.reply_text(message, parse_mode="HTML")
-    
+
     except Exception as e:
         logger.error(f"Voice memo error: {e}", exc_info=True)
         await update.message.reply_text("Something went wrong processing your voice message. Try again?")
-    
+
     finally:
         # Clean up temp files
         for p in [ogg_path, wav_path]:
@@ -692,6 +695,9 @@ def _conversation_context(user_data) -> str:
         parts.append("La personne a déjà dit qu'elle a une formation en massage. Ne pas redemander si elle débute. Pour l'orientation, présenter d'abord le parcours principal le plus complet: Niveau 2 | Masso-kinésithérapie spécialisation en sportif OU Niveau 2 | Massothérapie avancée spécialisation anti-stress, 600 h, 7 345 $. Ensuite seulement Niveau 3 Orthothérapie avancée, puis les cours à la carte comme options complémentaires.")
     if facts.get("name"):
         parts.append(f"Prénom du client: {facts['name']}. Utiliser le prénom rarement, seulement quand ça confirme ou guide naturellement; jamais à chaque réponse.")
+    if facts.get("active_goal"):
+        label = _goal_label(facts.get("active_goal")) or facts.get("active_goal")
+        parts.append(f"Objectif déjà exprimé: {label}. Ne pas redemander l'objectif; utiliser ce contexte pour choisir les cours, le parcours ou la prochaine étape. Si la personne demande 'lesquels', 'quoi ensuite' ou répond oui/ok, continuer dans cet objectif.")
     if facts.get("signup_link_sent"):
         parts.append("Le lien/formulaire d'inscription vient déjà d'être transmis. Ne pas le reproposer tout de suite sauf si la personne le redemande clairement; proposer plutôt de répondre aux questions ou clarifier le contenu/horaire.")
     if facts.get("pre_signup_question_asked") and not facts.get("signup_link_sent"):
@@ -776,11 +782,26 @@ def _de_repeat_answer(user_data, answer: str) -> str:
     if not answer:
         return answer
 
+    if user_data.pop("_allow_repeat_once", None):
+        return answer
+
     recent_answers = [t.get("a", "") for t in user_data.get("recent_turns", [])[-3:] if t.get("a")]
     if not recent_answers:
         return answer
 
     guarded = answer.strip()
+    guarded_plain = _plain_text(guarded).lower()
+    # A focused course answer can overlap a previous catalogue/list answer.
+    # Do not collapse it into a generic anti-repeat apology; the caller has
+    # narrowed from catalogue to a specific course, which is useful progress.
+    if ("aromathérapie" in guarded_plain or "aromatherapie" in guarded_plain) and (
+        "formation à la carte" in guarded_plain
+        or "formation a la carte" in guarded_plain
+        or "aromathérapie : les bases" in guarded_plain
+        or "aromatherapie : les bases" in guarded_plain
+        or "huiles essentielles" in guarded_plain
+    ):
+        return guarded
     if _repeat_norm(guarded).startswith("c est une excellente question"):
         guarded = re.sub(r"^[^.!?]*[.!?]\s*", "", guarded, count=1).strip()
     generic_openers = [
@@ -818,7 +839,7 @@ def _de_repeat_answer(user_data, answer: str) -> str:
     if any(_similar(guarded, old) >= 0.76 for old in recent_answers):
         return (
             "Vous avez raison — je ne vais pas répéter la même réponse.\n\n"
-            "Pour répondre plus précisément à votre nouvelle question : le revenu potentiel avec le Niveau 2 dépend surtout de votre spécialisation, de votre volume de clients et de votre positionnement. Le Niveau 2 sert à vous permettre de facturer plus solidement qu’un parcours de base, mais l’AMS ne peut pas garantir un revenu précis."
+            "Je garde le contexte déjà couvert. Pouvez-vous préciser l’angle que vous voulez : le contenu du cours, le prix, la durée, ou le meilleur choix selon votre objectif ?"
         )
 
     payment_tokens = ["104 $", "104$", "ifinance", "paiement échelonné", "paiement echelonne", "marge de crédit", "marge de credit"]
@@ -870,6 +891,14 @@ def _norm_chat(text: str) -> str:
 
 def _is_affirmation(question: str) -> bool:
     q = _norm_chat(question)
+    if _is_greeting(question):
+        return False
+    social_or_question = [
+        "comment", "ça va", "ca va", "allez vous", "allez-vous", "vas tu", "vas-tu",
+        "qui", "quoi", "pourquoi", "combien", "quel", "quelle", "où", "ou ", "when", "what", "how",
+    ]
+    if q.startswith(("oui ", "yes ", "ok ", "okay ", "d'accord ")) and any(x in q for x in social_or_question):
+        return False
     affirmations = {
         "oui", "yes", "yep", "yeah", "ok", "okay", "d'accord", "dac",
         "parfait", "vas-y", "vas y", "allez", "go", "oui svp",
@@ -1030,13 +1059,81 @@ def _pre_signup_check_reply(user_data, question: str) -> str:
     return f"{base}\n\n{follow}"
 
 
+def _detect_level(question: str) -> str | None:
+    q = _norm_chat(question)
+    if any(x in q for x in ["niveau 3", "niveau trois", "n3", "orthotherapie", "orthothérapie"]):
+        return "Niveau 3"
+    if any(x in q for x in ["niveau 2", "niveau deux", "n2"]):
+        return "Niveau 2"
+    if any(x in q for x in ["niveau 1", "niveau un", "n1"]):
+        return "Niveau 1"
+    return None
+
+
+def _detect_goal(question: str) -> str | None:
+    """Detect transferable advisor goals so follow-ups keep the same lane."""
+    q = _norm_chat(question)
+    goal_patterns = [
+        ("sport", ["massage sportif", "sportif", "sport", "athlete", "athlète", "athletes", "athlètes", "recuperation sportive", "récupération sportive", "performance", "entrainement", "entraînement"]),
+        ("aromatherapy", ["aroma", "aromatherapie", "aromathérapie", "laromatherapie", "l aromatherapie", "l'aromatherapie", "laromathérapie", "l aromathérapie", "l'aromathérapie", "huiles essentielles", "huile essentielle"]),
+        ("family", ["grossesse", "enceinte", "femme enceinte", "bébé", "bebe", "enfant", "enfants", "famille", "familial"]),
+        ("spa", ["spa", "hotel", "hôtel", "salon", "massages relaxants", "soins relaxants"]),
+        ("pain_mobility", ["douleur", "douleurs", "mobilite", "mobilité", "mouvement", "trigger", "myofascial", "myofasciale", "kinesitherapie", "kinésithérapie", "orthotherapie", "orthothérapie", "decongestion", "décongestion", "tension", "tensions", "musculaire", "musculaires", "therapeutique", "thérapeutique"]),
+        ("stress", ["stress", "anti stress", "anti-stress", "detente", "détente", "relaxation", "relaxant", "anxiete", "anxiété", "calme", "bien etre", "bien-être"]),
+        ("career", ["carriere", "carrière", "emploi", "travailler", "travail", "clinique", "ouvrir", "pratique", "cabinet", "a mon compte", "à mon compte", "professionnel", "professionnelle"]),
+    ]
+    for goal, patterns in goal_patterns:
+        if any(x in q for x in patterns):
+            return goal
+    return None
+
+
+def _goal_label(goal: str | None) -> str | None:
+    return {
+        "sport": "sport / performance",
+        "stress": "stress / détente",
+        "pain_mobility": "douleur / mobilité",
+        "aromatherapy": "aromathérapie",
+        "family": "grossesse / bébé / famille",
+        "spa": "spa / relaxation",
+        "career": "carrière / ouvrir sa pratique",
+    }.get(goal or "")
+
+
+def _goal_expansion(goal: str) -> str:
+    label = _goal_label(goal) or goal
+    return (
+        f"La personne reste dans l'objectif {label}. Réponds en gardant ce contexte, sans redemander son objectif. "
+        f"Présente le bundle AMS pertinent pour {label}, puis propose une seule prochaine étape utile. "
+        "Ne pas envoyer vers le site web et ne pas dire que la liste manque."
+    )
+
+
+def _extract_conversation_facts(user_data, question: str):
+    """Remember lightweight routing facts before choosing deterministic replies."""
+    q = question.lower()
+    facts = user_data.setdefault("facts", {})
+    level = _detect_level(question)
+    if level:
+        facts["level"] = level
+    goal = _detect_goal(question)
+    if goal:
+        facts["active_goal"] = goal
+    for campus in ["Laval", "Montréal", "Montreal", "Québec", "Quebec", "Brossard", "Sherbrooke", "Terrebonne", "Drummondville", "Trois-Rivières", "Trois Rivieres"]:
+        if campus.lower() in q:
+            facts["campus"] = "Montréal" if campus == "Montreal" else "Québec" if campus == "Quebec" else "Trois-Rivières" if campus == "Trois Rivieres" else campus
+            break
+
+
 def _direct_flow_reply(user_data, question: str):
     """Deterministic closures for dates/registration so Scarlett does not loop on exact dates."""
+    _extract_conversation_facts(user_data, question)
     q = _norm_chat(question)
     pending = user_data.get("pending_offer", "").lower()
     facts = user_data.get("facts", {})
     name = facts.get("name")
-    campus = facts.get("campus") or "le campus choisi"
+    campus = facts.get("campus")
+    level = facts.get("level") or _detect_level(question) or "Niveau 1"
     prefix = f"Oui, {name}." if name and _is_affirmation(question) else "Oui."
 
     wants_dates = _is_dates_query(question) or (_is_affirmation(question) and any(x in pending for x in ["date", "dates", "session", "sessions"]))
@@ -1063,15 +1160,30 @@ def _direct_flow_reply(user_data, question: str):
 
     if wants_dates:
         user_data.pop("pending_offer", None)
-        user_data["pending_offer"] = "Continuer la découverte: aider à choisir selon rythme, budget, contenu ou campus; ne transmettre le formulaire que sur demande claire."
-        return (
-            "Pour le **Niveau 1**, les prochaines sessions débutent généralement en **septembre** et en **janvier**. "
-            "Les horaires peuvent varier selon le campus et la formule choisie, donc les dates exactes doivent être confirmées avec l’AMS.\n\n"
-            f"Pour {campus}, le plus utile avant de s’inscrire est de choisir la formule qui vous convient : semaine, fin de semaine ou accélérée.\n\n"
-            "Qu’est-ce qui compte le plus pour vous en ce moment : le rythme, le budget, le contenu du cours ou le campus ?",
-            None,
-            None,
-        )
+        campus_part = f" à **{campus}**" if campus else ""
+        signature = f"dates:{level}:{campus or 'unknown'}"
+        repeated_same_dates = facts.get("last_dates_signature") == signature
+        facts["last_dates_signature"] = signature
+
+        if level == "Niveau 1":
+            base = (
+                f"Pour le **Niveau 1**{campus_part}, les prochaines sessions débutent généralement en **septembre** et en **janvier**. "
+                "Les horaires peuvent varier selon le campus et la formule choisie, donc les dates exactes doivent être confirmées avec l’AMS."
+            )
+        else:
+            base = (
+                f"Pour le **{level}**{campus_part}, les dates exactes doivent être confirmées directement avec l’AMS, "
+                "car elles varient selon le campus, la cohorte et les préalables."
+            )
+            if level == "Niveau 3":
+                base += " Le point important : le Niveau 3 vient après le Niveau 2 ou une équivalence."
+
+        if repeated_same_dates:
+            follow = "Je garde cette réponse en tête; je ne vais pas vous la répéter."
+        else:
+            follow = "Pour valider une date précise, le mieux est de contacter l’AMS au 1 800 475-1964 ou via la page contact."
+        user_data["pending_offer"] = "Si la personne confirme, donner le contact AMS ou la page contact pour valider les dates exactes; ne pas répéter les mêmes dates générales."
+        return (f"{base}\n\n{follow}", None, None)
 
     return None
 
@@ -1157,9 +1269,40 @@ def _expand_followup_question(user_data, question: str) -> str:
     recent = "\n".join(
         f"{t.get('q','')} {t.get('a','')}" for t in user_data.get("recent_turns", [])[-3:]
     ).lower()
-    content_followup = any(x in q for x in ["contenu", "dans le cours", "du cours", "apprend", "apprendre", "plus d'info", "plus info", "parler du cours"])
+    content_followup = any(x in q for x in ["contenu", "dans le cours", "du cours", "apprend", "apprendre", "plus d'info", "plus info", "parler du cours", "info sur le contenu", "information sur le contenu"])
+    facts = user_data.get("facts", {})
+    active_goal = facts.get("active_goal")
+    current_goal = _detect_goal(question)
+    recent_aromatherapy = any(x in recent for x in ["aromatherapie", "aromathérapie", "huiles essentielles", "huile essentielle"])
+    explicitly_not_main_path = any(x in q for x in ["pas praticien", "pas practicien", "pas le praticien", "pas niveau 1", "pas le niveau 1"])
+    explicitly_main_path = any(x in q for x in ["niveau 1", "praticien en massotherapie", "praticien en massothérapie"])
+
+    if explicitly_not_main_path and (current_goal == "aromatherapy" or recent_aromatherapy):
+        facts["active_goal"] = "aromatherapy"
+        facts.pop("level", None)
+        if facts.get("student_status") == "trained":
+            facts.pop("student_status", None)
+        user_data["_allow_repeat_once"] = True
+        return "Quel est le contenu des cours d'aromathérapie à la carte? Explique Aromathérapie : les bases, Aromathérapie clinique et scientifique 1, et le forfait bases + clinique/scientifique 1. Reste sur ces cours à la carte; ne parle pas du parcours principal."
+
+    if content_followup and (current_goal == "aromatherapy" or active_goal == "aromatherapy" or (recent_aromatherapy and not explicitly_main_path)):
+        facts["active_goal"] = "aromatherapy"
+        user_data["_allow_repeat_once"] = True
+        return "Quel est le contenu des cours d'aromathérapie à la carte? Explique Aromathérapie : les bases, Aromathérapie clinique et scientifique 1, et le forfait bases + clinique/scientifique 1. Reste sur ces cours à la carte; ne parle pas du parcours principal."
+
+    if active_goal and content_followup:
+        return _goal_expansion(active_goal)
+
     if content_followup and ("niveau 1" in recent or user_data.get("facts", {}).get("student_status") == "new"):
         return "Quel est le contenu et les objectifs du Niveau 1 | Praticien en massothérapie? Parle du cours: anatomie, massage suédois, aromathérapie, éthique, lois, protocole MOST et stages."
+
+    goal_followup = vague_list or q in {
+        "oui", "ok", "d'accord", "dac", "parfait", "continue", "vas-y", "go",
+        "quoi d'autre", "quoi d’autre", "et apres", "et après", "la suite",
+        "quel cours", "quels cours", "lesquels", "lequel", "que choisir", "tu proposes quoi"
+    }
+    if active_goal and goal_followup:
+        return _goal_expansion(active_goal)
 
     if vague_list:
         if any(word in recent for word in ["campus", "collège", "college", "adresse"]):
@@ -1192,6 +1335,12 @@ def _remember_pending_offer(user_data, question: str, answer: str):
     elif any(x in clean for x in ["campus", "adresse", "plus proche"]):
         offer = "Donner la prochaine information utile sur ce campus: adresse, formulaire d'inscription ou contact AMS, selon le dernier contexte."
 
+    goal = _detect_goal(answer) or user_data.get("facts", {}).get("active_goal")
+    if goal and any(x in clean for x in ["cours à la carte pertinents", "cours a la carte pertinents", "voie principale", "parcours plus complet", "objectif", "spécialiser votre offre", "specialiser votre offre"]):
+        user_data.setdefault("facts", {})["active_goal"] = goal
+        label = _goal_label(goal) or goal
+        offer = f"Continuer dans l'objectif {label}: aider à choisir le meilleur cours ou expliquer le parcours complet associé, sans redemander l'objectif et sans envoyer vers le site web."
+
     # Do not let generic yes after tiny greetings trigger a product answer.
     if offer and not _is_greeting(question):
         user_data["pending_offer"] = offer
@@ -1199,6 +1348,7 @@ def _remember_pending_offer(user_data, question: str, answer: str):
 
 def _update_conversation_state(user_data, question: str, answer: str):
     import re
+    _extract_conversation_facts(user_data, question)
     q = question.lower()
     facts = user_data.setdefault("facts", {})
     if _is_capability_query(question) or _is_how_it_works_query(question) or _is_old_bot_query(question) or _is_assumption_challenge(question) or _is_lost_query(question):
@@ -1211,6 +1361,9 @@ def _update_conversation_state(user_data, question: str, answer: str):
     if any(x in q for x in ["j'ai déjà", "jai deja", "déjà une formation", "deja une formation", "je suis massothérapeute", "je suis massotherapeute", "massotherapeute", "massothérapeute", "praticien en massage", "praticienne en massage", "niveau 1", "niveau 2", "400 heures", "400h"]):
         if facts.get("student_status") != "new" or any(x in q for x in ["niveau 1", "niveau 2", "massothérapeute", "massotherapeute", "praticien", "praticienne", "déjà", "deja", "400"]):
             facts["student_status"] = "trained"
+    goal = _detect_goal(question)
+    if goal:
+        facts["active_goal"] = goal
     for campus in ["Laval", "Montréal", "Montreal", "Québec", "Quebec", "Brossard", "Sherbrooke", "Terrebonne", "Drummondville", "Trois-Rivières", "Trois Rivieres"]:
         if campus.lower() in q:
             facts["campus"] = "Montréal" if campus == "Montreal" else "Québec" if campus == "Quebec" else "Trois-Rivières" if campus == "Trois Rivieres" else campus
@@ -1236,12 +1389,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     question = update.message.text.strip()
     lang = context.user_data.get("lang", RESPONSE_LANGUAGE)
     # Text messages always receive text replies.
-    
+
     # Handle greetings locally; do not send small talk through RAG.
     if _is_greeting(question):
         context.user_data["welcomed"] = True
+        # Social small-talk should not accidentally accept a pending guided offer.
+        context.user_data.pop("pending_offer", None)
         if context.user_data.get("welcomed_once"):
-            await update.message.reply_text("Oui, je suis là. Quelle information AMS souhaitez-vous vérifier ?")
+            await update.message.reply_text("Ça va très bien, merci. Quelle information AMS souhaitez-vous vérifier ?")
         else:
             context.user_data["welcomed_once"] = True
             await update.message.reply_text("Bonjour, je suis Scarlett. Je peux vous aider à trouver le bon parcours à l’AMS.")
@@ -1307,7 +1462,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Show typing indicator
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
-    
+
     try:
         conv_ctx = _conversation_context(context.user_data)
         question_for_rag = _expand_followup_question(context.user_data, question)
@@ -1319,29 +1474,29 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             json=payload,
             timeout=30
         )
-        
+
         if resp.status_code == 200:
             data = resp.json()
             answer = _smooth_guided_offer(_chat_safe(data.get("answer", "I couldn't process that question."), strip_intro=True))
             answer = _de_repeat_answer(context.user_data, answer)
             sources = data.get("sources", [])
             refused = data.get("refused", False)
-            
+
             # Format text response (used as fallback and for text mode)
             message = answer
-            
+
             # Internal source names are never shown to customers.
-            
+
             # Telegram message limit
             if len(message) > 4000:
                 message = message[:3997] + "..."
-            
+
             _update_conversation_state(context.user_data, question, answer)
             # Text messages always get written replies. Voice is reserved for voice memos.
             await update.message.reply_text(message, parse_mode="HTML")
         else:
             await update.message.reply_text("Sorry, I couldn't process your question right now.")
-    
+
     except requests.exceptions.Timeout:
         await update.message.reply_text("That took too long. Try a simpler question.")
     except requests.exceptions.ConnectionError:
@@ -1356,9 +1511,9 @@ def main():
     if not token:
         logger.error("TELEGRAM_BOT_TOKEN not set. Create a bot via @BotFather and set the env var.")
         return
-    
+
     app = ApplicationBuilder().token(token).build()
-    
+
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("stats", stats))
@@ -1366,7 +1521,7 @@ def main():
     app.add_handler(CommandHandler("voice", voice_command))
     app.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, handle_voice_disabled))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    
+
     logger.info("🛎️ Scarlett — Receptionist Bot starting...")
     app.run_polling()
 
