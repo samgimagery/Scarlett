@@ -19,6 +19,7 @@ This checkpoint covers the production spine now running behind the AMS Telegram 
   - current-student support layer
 - Scarlett Brain tracing, review queue, classifier, service tiles, and test harnesses under `scarlett_core/brain/`
 - Approved AMS first-audio WAV assets under `scarlett_core/voice/assets/ams/`
+- Contextual starter WAV assets under `scarlett_core/voice/assets/ams/starters/`
 
 ## Shipped in this hardening pass
 
@@ -120,12 +121,32 @@ Runtime behaviour:
 - cached tile audio is sent first when `/ask` returns ready voice metadata
 - cached-only answers skip generated TTS to avoid duplicate playback
 - hybrid answers play cached first audio, then generated answer chunks
+- generic receipt filler no longer plays before fast service-tile answers
+- contextual starters are used only for genuinely slow lookup/answer-bridge moments
+- prototype barge-in is disabled while Scarlett is speaking so browser/iPhone mic pickup does not cut her off
 
 Final asset validation:
 
-- current AMS WAV assets: `28/28` present
-- duration range: `1.63s–6.18s`
-- average duration: `4.08s`
+- current AMS first-audio WAV assets: `28/28` present
+- first-audio duration range: `1.63s–6.18s`
+- first-audio average duration: `4.08s`
+- contextual starter WAV assets: `120/120` generated
+- contextual starter duration range: `0.90s–7.12s`
+- contextual starter average duration: `2.52s`
+
+### Contextual starter bank
+
+REQ-161 adds a contextual starter bank so Scarlett does not overuse the same bridges once the first-audio path feels fast.
+
+Coverage:
+
+- 12 groups × 10 variants
+- groups: price, financing, campus, signup, reserve_place, continuing_ed, course_content, human, repair, dates, identity, generic
+- manifest: `scarlett_core/voice/manifests/ams_contextual_starter_bank_v1.json`
+- readable manifest: `scarlett_core/voice/manifests/ams_contextual_starter_bank_v1.md`
+- generated assets: `scarlett_core/voice/assets/ams/starters/`
+
+Selection rule: service-tile audio wins when the answer is ready quickly. Contextual starters are not decorative filler; they are selected by intent only when retrieval or answer preparation needs a moment.
 
 ## Verification gates
 
@@ -142,25 +163,35 @@ Latest live gates passed:
 - greeting polish regressions: `5/5`
 - realistic conversation batch: passed, `0` low-confidence rows
 - live Telegram/RAG trust regression: `15` turns
-- asset validation: `28/28` current AMS WAV files present
+- asset validation: `28/28` current AMS first-audio WAV files present
+- contextual starter generation: `120/120` WAV files generated
 
 ## Current next priority
 
-Next work should be the **real browser/iPhone voice pass**.
+Next work is **REQ-161 contextual starter hardening**.
 
-Reason: code and harness gates are now green. The remaining risk is perceived product quality in the actual mic/browser loop: first-audio timing, duplicate playback, awkward takes, and interruption/barge-in behaviour.
+Reason: Sam’s real-device pass confirmed the core live voice feel is now strong. The remaining risk is repetition or wrong-context starter audio during longer play sessions.
 
 Recommended manual script:
 
-- `Bonjour`
 - `Combien coûte le Niveau 1?`
 - `Quels campus avez-vous?`
 - `Je veux m’inscrire`
 - `Garde-moi une place`
 - `Peux-tu répéter?`
-- interrupt once mid-answer if the UI allows it
+- `Je veux parler à quelqu’un`
+
+Listen for:
+
+- repeated starter lines
+- wrong-context starters
+- any generic bridge before a fast cached answer
+- awkward prosody or overlong starter clips
+- delay added by starter selection
+- premature cut-off from mic/VAD pickup
 
 Decision after the pass:
 
-- if it sounds acceptable, harden timing and barge-in
-- if specific lines sound weak, regenerate only those WAV assets before further code work
+- if starters feel varied and contextual, lock v1
+- if specific lines sound weak, regenerate only those WAV assets
+- choose the next recording batch only after this layer is stable

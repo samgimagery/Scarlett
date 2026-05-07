@@ -279,9 +279,9 @@ async def handle_ws(websocket):
                 await websocket.send(json.dumps({"type": "transcript", "text": text, "time": f"{stt_time:.2f}s"}))
 
                 # Cached-first FR-CA voice choreography.
-                # 1) acknowledge immediately; 2) only use a lookup line if RAG is actually slow;
-                # 3) bridge once the answer is ready while Qwen3-TTS cooks the first chunk.
-                await send_cached_prefiller(websocket, "receipt")
+                # Do not acknowledge with generic filler before fast service-tile answers;
+                # it makes the real answer wait behind "Parfait". Only use lookup filler
+                # when the RAG/service request is genuinely slow.
 
                 # RAG / LLM — run in the background so the voice layer can decide whether
                 # a lookup prefiller is needed instead of always stacking filler lines.
@@ -289,7 +289,7 @@ async def handle_ws(websocket):
                 rag_task = asyncio.create_task(asyncio.to_thread(ask_receptionist, text))
                 lookup_sent = False
                 try:
-                    answer_data = await asyncio.wait_for(asyncio.shield(rag_task), timeout=0.70)
+                    answer_data = await asyncio.wait_for(asyncio.shield(rag_task), timeout=0.45)
                 except asyncio.TimeoutError:
                     lookup_sent = await send_cached_prefiller(websocket, "lookup", retrieval_running=True)
                     answer_data = await rag_task

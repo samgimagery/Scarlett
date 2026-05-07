@@ -15,6 +15,31 @@ The French Canadian Scarlett voice direction is now:
 
 The target feeling is calm, deliberate, premium, kind, and competent. Latency should feel like care: Scarlett responds immediately, then answers with composed confidence once she has the right information.
 
+## Contextual starter bank — REQ-161
+
+After the first successful real-device cached-first test, Scarlett now has a contextual starter bank for AMS. This is separate from generic prefillers. The goal is to avoid hearing the same bridge lines repeatedly once first-audio latency is good.
+
+Canonical files:
+
+- `manifests/ams_contextual_starter_bank_v1.json` — 120 FR-CA starter lines
+- `manifests/ams_contextual_starter_bank_v1.md` — human-readable starter bank
+- `manifests/ams_contextual_starter_bank_v1_generation_report.json` — generation report
+- `assets/ams/starters/` — generated contextual starter WAVs
+
+Current coverage:
+
+- `120/120` WAV assets generated
+- 12 groups × 10 variants: price, financing, campus, signup, reserve_place, continuing_ed, course_content, human, repair, dates, identity, generic
+- duration range: `0.90s–7.12s`
+- average duration: `2.52s`
+- runtime: active `live_conversation.py` loads starters and selects by `/ask` voice intent or local path classifier
+
+Runtime rule: cached service-tile audio wins. Do not put a generic or contextual starter in front of an answer that is already ready quickly. Starters are for genuinely slow lookup/answer-bridge moments, and they must match the service context.
+
+Prototype barge-in rule: barge-in is disabled while Scarlett is speaking, because browser/iPhone mic pickup was cutting off good audio. Re-enable only after echo handling is reliable.
+
+Next validation: live listening/culling pass. Remove or regenerate starters that sound repetitive, wrong-context, awkward, too long, or slower than silence.
+
 ## Mega prefiller bank
 
 Scarlett Core should maintain a large reusable bank of cached prefillers for any service situation. This is a core latency shield, not decoration.
@@ -94,4 +119,4 @@ Current validation:
 - live runtime: `live_conversation.py` resolves and sends cached service-tile WAVs before generated chunks
 - duplicate prevention: cached-only answers skip generated TTS
 
-Next validation is manual: run the browser/iPhone pass and judge perceived first-audio timing, duplicate playback, awkward lines, and barge-in behaviour.
+Manual browser/iPhone validation succeeded for the core cached-first feeling. Next validation is REQ-161: listen through live contextual starter behaviour, then cull or regenerate weak starter clips before the next recording batch.

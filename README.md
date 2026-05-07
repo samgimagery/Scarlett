@@ -2,7 +2,7 @@
 
 Scarlett is the Telegram receptionist for the Académie de Massage Scientifique (AMS).
 
-Status: locked as the correct AMS receptionist baseline as of 2026-04-30; hardened live brain + cached-first live voice checkpoint as of 2026-05-07.
+Status: locked as the correct AMS receptionist baseline as of 2026-04-30; hardened live brain + cached-first live voice + contextual starter bank checkpoint as of 2026-05-07.
 
 Scarlett is not a general chatbot, search engine, or file browser. She is a warm French-first receptionist that answers from the AMS knowledge vault and guides prospective students through a progressive service flow.
 
@@ -17,7 +17,7 @@ Scarlett is not a general chatbot, search engine, or file browser. She is a warm
 - Active knowledge layer: `Réception Scarlett/`
 - Telegram service: `com.scarlett.receptionist-telegram`
 - RAG service: `com.scarlett.receptionist-rag`
-- Voice: cached-first browser prototype is active via `com.scarlett.voice-web`; Telegram remains the locked text production channel
+- Voice: cached-first browser prototype is active via `com.scarlett.voice-web`; contextual starter bank v1 is wired for slow lookup/answer-bridge moments; Telegram remains the locked text production channel
 
 ## What Scarlett Must Do
 

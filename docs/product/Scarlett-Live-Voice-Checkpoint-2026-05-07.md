@@ -2,7 +2,7 @@
 
 Scarlett live voice is now wired as a cached-first prototype for the AMS receptionist.
 
-This checkpoint covers the path from scripted service tiles to approved `.wav` assets and active browser playback.
+This checkpoint covers the path from scripted service tiles to approved `.wav` assets, active browser playback, real-device feedback, and the new contextual starter bank.
 
 ## Current state
 
@@ -12,7 +12,9 @@ This checkpoint covers the path from scripted service tiles to approved `.wav` a
 - Public entry point: `https://samgs-mac-studio.tail3e92a8.ts.net/`
 - Cached asset root: `scarlett_core/voice/assets/`
 - AMS asset namespace: `scarlett_core/voice/assets/ams/`
-- Manifest: `scarlett_core/voice/manifests/ams_first_recording_batch_v1.json`
+- First-audio manifest: `scarlett_core/voice/manifests/ams_first_recording_batch_v1.json`
+- Contextual starter manifest: `scarlett_core/voice/manifests/ams_contextual_starter_bank_v1.json`
+- Contextual starter namespace: `scarlett_core/voice/assets/ams/starters/`
 
 ## What shipped
 
@@ -37,6 +39,19 @@ REQ-160 wired playback into the live voice path.
 - hybrid answers play cached first audio, then generated answer chunks
 - WebSocket audio metadata includes service tile identity and asset IDs
 
+
+REQ-161 started the contextual starter hardening pass after Sam’s real-device test.
+
+- generic receipt filler was removed before fast service-tile answers
+- RAG slow-path threshold tightened from `0.70s` to `0.45s`
+- contextual starter selection added to `live_conversation.py`
+- starter category is inferred from `/ask` voice metadata or local path classifier
+- 120 contextual FR-CA starter WAVs generated: 12 intent groups × 10 variants
+- starter duration range: `0.90s–7.12s`, average `2.52s`
+- groups: price, financing, campus, signup, reserve_place, continuing_ed, course_content, human, repair, dates, identity, generic
+- prototype barge-in disabled while Scarlett is speaking so browser/iPhone mic pickup does not cut her off
+- Sam confirmed the improved live feel in testing: “WOW fucking amazing already ! WTF”
+
 ## Key files
 
 - `live_conversation.py` — active browser voice runtime
@@ -46,6 +61,9 @@ REQ-160 wired playback into the live voice path.
 - `scarlett_core/brain/timing/interaction_cases_ams.jsonl` — AMS timing/service cases
 - `scarlett_core/voice/generate_manifest_audio.py` — manifest-driven batch generation
 - `scarlett_core/voice/manifests/ams_first_recording_batch_v1.json` — canonical recording manifest
+- `scarlett_core/voice/manifests/ams_contextual_starter_bank_v1.json` — 120-line contextual starter bank
+- `scarlett_core/voice/manifests/ams_contextual_starter_bank_v1.md` — human-readable starter bank
+- `scarlett_core/voice/assets/ams/starters/` — contextual starter WAV assets
 - `scarlett_core/voice/reviews/` — Whisper/listening review artifacts
 
 ## Verified cases
@@ -54,8 +72,11 @@ Smoke cases verified locally:
 
 - `bonjour` → cached `ams/ams-int-001-greeting.wav`, no duplicate generated TTS
 - `je veux réserver ma place` → cached `ams/ams-int-025-reserve_place.wav`, no duplicate generated TTS
-- `combien coûte le niveau 1` → cached `ams/ams-int-011-price_n1.wav`, no duplicate generated TTS
+- `combien coûte le niveau 1` → fast cached price audio, no generic filler first
 - `quels campus avez-vous` → cached `ams/ams-int-019-campus_list.wav`, then generated longer answer chunks
+- `je veux m’inscrire` → contextual signup starter available if answer preparation is slow
+- `garde-moi une place` → cached reserve-place service tile, no fake reservation
+- `peux-tu répéter` → repair starter/service tile path available
 
 ## Latest gates
 
@@ -72,27 +93,38 @@ Green as of this checkpoint:
 - greeting polish regressions: `5/5`
 - realistic conversation batch: passed, `0` low-confidence rows
 - trust regression: `15/15`
-- asset validation: `28/28` current AMS WAV files present
+- asset validation: `28/28` current AMS first-audio WAV files present
+- contextual starter generation: `120/120` WAV files generated
+- contextual starter runtime load: `120 cached clips` confirmed after voice-web restart
 
 ## Known limitation
 
-The final missing gate is not a unit test. It is a real browser/iPhone voice pass to judge perceived first-audio timing, duplicate playback, awkward takes, and interruption/barge-in behaviour.
+The core live feel is now validated by Sam, but the contextual starter bank still needs a proper listening/culling pass. The starter bank is generated and wired, not yet fully curated.
 
 ## Next step
 
-Run the iPhone/browser pass against the public URL.
+Run the REQ-161 live starter pass against the public URL.
 
 Recommended script:
 
-- `Bonjour`
 - `Combien coûte le Niveau 1?`
 - `Quels campus avez-vous?`
 - `Je veux m’inscrire`
 - `Garde-moi une place`
 - `Peux-tu répéter?`
-- interrupt once mid-answer if the UI allows it
+- `Je veux parler à quelqu’un`
+
+Listen for:
+
+- repeated starter lines
+- wrong-context starters
+- any generic bridge before a fast cached answer
+- awkward prosody or overlong starter clips
+- delay added by starter selection
+- premature cut-off from mic/VAD pickup
 
 Decision after that pass:
 
-- if the audio feels good: harden timing and barge-in
-- if specific lines feel weak: regenerate only those WAV assets first
+- if the starters feel varied and contextual: commit this as the locked v1 behaviour
+- if specific starter lines feel weak: regenerate only those WAV assets first
+- only then choose the next recording batch

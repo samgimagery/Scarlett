@@ -7,7 +7,7 @@ Architecture:
 - Silero VAD detects speech start/end in real-time
 - On speech end: faster-whisper STT → streaming Ollama LLM → CSM TTS
 - Audio chunks stream back to browser as generated
-- Barge-in: VAD detects new speech → stop current TTS → process new input
+- Prototype mode: ignore mic/VAD interruptions while Scarlett is speaking; finish the current line first
 
 TTS pipeline:
 - CSM (Sesame CSM 1B) is the primary TTS engine for all speech
@@ -19,6 +19,7 @@ No tap-to-talk. Mic stays on. Scarlett listens, thinks, speaks — continuously.
 """
 
 import asyncio
+import hashlib
 import json
 import time
 import numpy as np
@@ -38,6 +39,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import mcp_client
 from prompt import build_context, build_prompt
 import tts as tts_engine
+from scarlett_core.brain.timing.path_classifier import classify_utterance_to_path
 
 # --- Config ---
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
@@ -49,6 +51,7 @@ LIVE_LANGUAGE = "fr"
 RAG_ASK_URL = "http://127.0.0.1:8000/ask"
 VOICE_ASSETS_ROOT = Path(__file__).resolve().parent / "scarlett_core" / "voice" / "assets"
 PREFILLER_MANIFEST = Path("/Users/samg/Media/voices/french_sources/xUiKafk2gWM/qwen3_tts_fr_lora_overnight_20260504-215150/prefiller_bank_req112_v2_p0_speed075/manifest.json")
+STARTER_MANIFEST = Path(__file__).resolve().parent / "scarlett_core" / "voice" / "manifests" / "ams_contextual_starter_bank_v1.json"
 SYSTEM_PROMPT = """Tu es Scarlett, la réception virtuelle chaleureuse de l’Académie de Massage Scientifique. Réponds en français canadien naturel, clairement et brièvement. Tu aides avec les formations, prix, campus, inscriptions et prochaines étapes. Tu parles à voix haute: 1 à 3 phrases, pas de longs paragraphes."""
 
 # VAD settings
@@ -58,8 +61,26 @@ VAD_MIN_SPEECH_MS = 300
 VAD_SAMPLE_RATE = 16000
 
 
-# --- Cached FR-CA prefiller bank ---
+# --- Cached FR-CA prefiller/starter banks ---
 _prefillers = None
+_starters = None
+
+STARTER_CATEGORY_BY_INTENT = {
+    "price_n1": "price", "price_n2": "price", "price_n3": "price",
+    "total_n1_n2": "price", "total_all": "price", "weekly": "price", "too_expensive": "price",
+    "financing": "financing",
+    "campus_list": "campus", "nearest_campus": "campus", "campus_address": "campus", "city_unknown": "campus",
+    "signup_link": "signup", "signup_direct": "signup", "reserve_place": "reserve_place",
+    "continuing_ed_list": "continuing_ed", "specific_course": "continuing_ed",
+    "sport_course": "continuing_ed", "aroma_course": "continuing_ed",
+    "programme_content": "course_content", "course_content": "course_content",
+    "prerequisites": "course_content", "online_hybrid": "course_content", "how_it_works": "course_content",
+    "human": "human", "julie": "human",
+    "repeat": "repair", "unclear": "repair", "didnt_hear": "repair", "stt_failure": "repair", "frustrated": "repair",
+    "dates": "dates", "availability": "dates", "schedule": "dates",
+    "greeting": "identity", "greeting_allo": "identity", "how_are_you": "identity",
+    "what_can_help": "identity", "identity": "identity",
+}
 
 def load_prefillers():
     global _prefillers
@@ -76,6 +97,82 @@ def load_prefillers():
     _prefillers = {"by_id": by_id, "by_type": by_type}
     print(f"  ✅ Prefillers ready: {len(by_id)} cached clips", flush=True)
     return _prefillers
+
+
+
+def load_starters():
+    """Load context-aware starter clips generated from the repo manifest."""
+    global _starters
+    if _starters is not None:
+        return _starters
+    by_category = {}
+    by_id = {}
+    if STARTER_MANIFEST.exists():
+        manifest = json.loads(STARTER_MANIFEST.read_text(encoding="utf-8"))
+        for item in manifest.get("lines", []):
+            wav_path = VOICE_ASSETS_ROOT / item.get("asset_id", "")
+            if wav_path.exists() and wav_path.stat().st_size > 1000:
+                enriched = {**item, "wav": str(wav_path)}
+                by_id[item["line_id"]] = enriched
+                by_category.setdefault(item.get("intent", "generic"), []).append(enriched)
+    _starters = {"by_id": by_id, "by_category": by_category}
+    print(f"  ✅ Context starters ready: {len(by_id)} cached clips", flush=True)
+    return _starters
+
+
+def classify_starter_category(text, *, voice=None):
+    """Map transcript or /ask voice metadata to a starter bank category."""
+    intent = (voice or {}).get("intent")
+    if intent:
+        return STARTER_CATEGORY_BY_INTENT.get(intent, "generic")
+    try:
+        candidates = classify_utterance_to_path(text)
+        if candidates:
+            return STARTER_CATEGORY_BY_INTENT.get(candidates[0].intent, "generic")
+    except Exception as exc:
+        print(f"  ⚠️ Starter classifier failed: {exc}", flush=True)
+    return "generic"
+
+
+def select_contextual_starter(text, *, voice=None, salt="lookup"):
+    starters = load_starters()["by_category"]
+    category = classify_starter_category(text, voice=voice)
+    pool = starters.get(category) or starters.get("generic") or []
+    if not pool:
+        return None
+    digest = hashlib.sha1(f"{salt}:{category}:{text}".encode("utf-8")).hexdigest()
+    idx = int(digest[:8], 16) % len(pool)
+    return pool[idx]
+
+
+async def send_contextual_starter(websocket, transcript, *, voice=None, salt="lookup"):
+    item = select_contextual_starter(transcript, voice=voice, salt=salt)
+    if not item:
+        return False
+    wav_path = item.get("wav")
+    if not wav_path or not os.path.exists(wav_path):
+        return False
+    await websocket.send(json.dumps({
+        "type": "audio_info",
+        "time": "cached",
+        "sampleRate": 24000,
+        "streaming": True,
+        "starter": True,
+        "starter_id": item.get("line_id"),
+        "starter_category": item.get("intent"),
+        "starter_text": item.get("text_fr_ca"),
+    }))
+    with open(wav_path, "rb") as f:
+        await websocket.send(f.read())
+    await websocket.send(json.dumps({
+        "type": "audio_chunk",
+        "starter": True,
+        "starter_id": item.get("line_id"),
+        "starter_category": item.get("intent"),
+    }))
+    print(f"  🎬 Context starter: {item.get('line_id')} — {item.get('text_fr_ca')}", flush=True)
+    return True
+
 
 def select_prefiller(service_state, *, retrieval_running=False, answer_ready=False):
     bank = load_prefillers()["by_id"]
@@ -404,6 +501,10 @@ async def generate_csm_audio(text, is_filler=False, max_audio_ms=None):
 
 
 # --- WebSocket handler ---
+# Current prototype rule: Scarlett finishes her current spoken line.
+# Barge-in was too sensitive on iPhone/browser playback and cancelled speech
+# from incidental mic pickup, so interruption is disabled for now.
+ENABLE_BARGE_IN = False
 tts_cancel = False
 processing = False
 
@@ -447,18 +548,31 @@ async def handle_ws(websocket):
                     events = vad.process_chunk(chunk)
                     for event in events:
                         if event == 'speech_start':
+                            if processing and not ENABLE_BARGE_IN:
+                                # Ignore mic/VAD pickup while Scarlett is speaking or answering.
+                                # This prevents browser speaker audio and tiny user noises from
+                                # cancelling the current sentence.
+                                is_speaking = False
+                                speech_audio = np.array([], dtype=np.float32)
+                                continue
+
                             is_speaking = True
                             speech_audio = np.array([], dtype=np.float32)
                             await websocket.send(json.dumps({"type": "state", "state": "hearing"}))
                             print("  👤 Speech started")
 
-                            # Barge-in
-                            if processing:
+                            # Optional future barge-in mode.
+                            if processing and ENABLE_BARGE_IN:
                                 tts_cancel = True
                                 print("  🛑 Barge-in!")
                                 await websocket.send(json.dumps({"type": "barge_in"}))
 
                         elif event == 'speech_end':
+                            if processing and not ENABLE_BARGE_IN:
+                                is_speaking = False
+                                speech_audio = np.array([], dtype=np.float32)
+                                continue
+
                             is_speaking = False
                             # Add remaining audio from this chunk
                             speech_audio = np.concatenate([speech_audio, audio_float32])
@@ -502,19 +616,20 @@ async def process_utterance(websocket, audio_data, vad):
         print(f"  📝 STT: '{transcript}' ({stt_time:.2f}s)")
 
         # Cached-first voice layer.
-        # Receipt does not imply work. Lookup is only spoken if the real
-        # RAG/service request is slow, avoiding stacked filler when answers are instant.
+        # Important: do not play a generic receipt before fast service-tile answers.
+        # It delays the real first audio and makes the user hear filler while the
+        # correct answer is already visible. Only play a lookup prefiller when the
+        # grounded request is genuinely slow.
         tts_cancel = False
-        await send_cached_prefiller(websocket, "receipt")
 
         # Grounded receptionist answer via the existing RAG/service API.
         rag_t0 = time.time()
         rag_task = asyncio.create_task(asyncio.to_thread(ask_grounded_receptionist, transcript))
         lookup_sent = False
         try:
-            rag_data = await asyncio.wait_for(asyncio.shield(rag_task), timeout=0.70)
+            rag_data = await asyncio.wait_for(asyncio.shield(rag_task), timeout=0.45)
         except asyncio.TimeoutError:
-            lookup_sent = await send_cached_prefiller(websocket, "lookup", retrieval_running=True)
+            lookup_sent = await send_contextual_starter(websocket, transcript, salt="lookup")
             try:
                 rag_data = await rag_task
             except Exception as e:
@@ -549,7 +664,7 @@ async def process_utterance(websocket, audio_data, vad):
         if service_tile_sent and voice.get("line") and reply.strip() == str(voice.get("line")).strip():
             chunks = []
         if chunks and not service_tile_sent and (not lookup_sent or len(reply) > 90):
-            await send_cached_prefiller(websocket, "answer_bridge", answer_ready=True)
+            await send_contextual_starter(websocket, transcript, voice=voice, salt="answer_bridge")
 
         # Generate grounded answer chunks with the approved FR-CA Qwen3 LoRA voice.
         total_tts_start = time.time()
@@ -625,7 +740,8 @@ async def main():
     get_vad()
     print("  ✅ STT + VAD ready")
     load_prefillers()
-    print("  🎙️ Voice: FR-CA Qwen3 LoRA + cached REQ-112 prefillers")
+    load_starters()
+    print("  🎙️ Voice: FR-CA Qwen3 LoRA + cached/contextual starters")
 
     # Single port — both HTTP and WS on 8765
     import websockets

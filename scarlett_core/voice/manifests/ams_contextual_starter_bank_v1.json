@@ -1,0 +1,1960 @@
+{
+  "manifest_id": "ams_contextual_starter_bank_v1",
+  "customer": "ams",
+  "language": "fr-CA",
+  "created": "2026-05-07",
+  "purpose": "Context-aware first-audio starters for live Scarlett voice; replaces overused generic lookup/bridge lines.",
+  "line_count": 120,
+  "lines": [
+    {
+      "sequence": 1,
+      "line_id": "ams-starter-price-001",
+      "case_id": "starter_price",
+      "intent": "price",
+      "intent_aliases": [
+        "price_n1",
+        "price_n2",
+        "price_n3",
+        "total_n1_n2",
+        "total_all",
+        "weekly",
+        "too_expensive"
+      ],
+      "asset_id": "ams/starters/ams-starter-price-001.wav",
+      "text_fr_ca": "Oui — je vous donne le prix exact.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 2,
+      "line_id": "ams-starter-price-002",
+      "case_id": "starter_price",
+      "intent": "price",
+      "intent_aliases": [
+        "price_n1",
+        "price_n2",
+        "price_n3",
+        "total_n1_n2",
+        "total_all",
+        "weekly",
+        "too_expensive"
+      ],
+      "asset_id": "ams/starters/ams-starter-price-002.wav",
+      "text_fr_ca": "Bien sûr. Je vous donne le montant clair.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 3,
+      "line_id": "ams-starter-price-003",
+      "case_id": "starter_price",
+      "intent": "price",
+      "intent_aliases": [
+        "price_n1",
+        "price_n2",
+        "price_n3",
+        "total_n1_n2",
+        "total_all",
+        "weekly",
+        "too_expensive"
+      ],
+      "asset_id": "ams/starters/ams-starter-price-003.wav",
+      "text_fr_ca": "D’accord, je vais vous donner le prix simplement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 4,
+      "line_id": "ams-starter-price-004",
+      "case_id": "starter_price",
+      "intent": "price",
+      "intent_aliases": [
+        "price_n1",
+        "price_n2",
+        "price_n3",
+        "total_n1_n2",
+        "total_all",
+        "weekly",
+        "too_expensive"
+      ],
+      "asset_id": "ams/starters/ams-starter-price-004.wav",
+      "text_fr_ca": "Oui, regardons le tarif du programme.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 5,
+      "line_id": "ams-starter-price-005",
+      "case_id": "starter_price",
+      "intent": "price",
+      "intent_aliases": [
+        "price_n1",
+        "price_n2",
+        "price_n3",
+        "total_n1_n2",
+        "total_all",
+        "weekly",
+        "too_expensive"
+      ],
+      "asset_id": "ams/starters/ams-starter-price-005.wav",
+      "text_fr_ca": "Je vous donne le coût sans détour.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 6,
+      "line_id": "ams-starter-price-006",
+      "case_id": "starter_price",
+      "intent": "price",
+      "intent_aliases": [
+        "price_n1",
+        "price_n2",
+        "price_n3",
+        "total_n1_n2",
+        "total_all",
+        "weekly",
+        "too_expensive"
+      ],
+      "asset_id": "ams/starters/ams-starter-price-006.wav",
+      "text_fr_ca": "Parfait, on regarde le prix ensemble.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 7,
+      "line_id": "ams-starter-price-007",
+      "case_id": "starter_price",
+      "intent": "price",
+      "intent_aliases": [
+        "price_n1",
+        "price_n2",
+        "price_n3",
+        "total_n1_n2",
+        "total_all",
+        "weekly",
+        "too_expensive"
+      ],
+      "asset_id": "ams/starters/ams-starter-price-007.wav",
+      "text_fr_ca": "Oui — je vous situe le montant tout de suite.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 8,
+      "line_id": "ams-starter-price-008",
+      "case_id": "starter_price",
+      "intent": "price",
+      "intent_aliases": [
+        "price_n1",
+        "price_n2",
+        "price_n3",
+        "total_n1_n2",
+        "total_all",
+        "weekly",
+        "too_expensive"
+      ],
+      "asset_id": "ams/starters/ams-starter-price-008.wav",
+      "text_fr_ca": "Je vous donne l’ancrage de prix le plus utile.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 9,
+      "line_id": "ams-starter-price-009",
+      "case_id": "starter_price",
+      "intent": "price",
+      "intent_aliases": [
+        "price_n1",
+        "price_n2",
+        "price_n3",
+        "total_n1_n2",
+        "total_all",
+        "weekly",
+        "too_expensive"
+      ],
+      "asset_id": "ams/starters/ams-starter-price-009.wav",
+      "text_fr_ca": "D’accord, je pars du prix officiel.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 10,
+      "line_id": "ams-starter-price-010",
+      "case_id": "starter_price",
+      "intent": "price",
+      "intent_aliases": [
+        "price_n1",
+        "price_n2",
+        "price_n3",
+        "total_n1_n2",
+        "total_all",
+        "weekly",
+        "too_expensive"
+      ],
+      "asset_id": "ams/starters/ams-starter-price-010.wav",
+      "text_fr_ca": "Oui, je vous réponds directement sur le coût.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 11,
+      "line_id": "ams-starter-financing-001",
+      "case_id": "starter_financing",
+      "intent": "financing",
+      "intent_aliases": [
+        "financing"
+      ],
+      "asset_id": "ams/starters/ams-starter-financing-001.wav",
+      "text_fr_ca": "Oui — je vous explique les options de paiement connues.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 12,
+      "line_id": "ams-starter-financing-002",
+      "case_id": "starter_financing",
+      "intent": "financing",
+      "intent_aliases": [
+        "financing"
+      ],
+      "asset_id": "ams/starters/ams-starter-financing-002.wav",
+      "text_fr_ca": "D’accord, on regarde le paiement calmement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 13,
+      "line_id": "ams-starter-financing-003",
+      "case_id": "starter_financing",
+      "intent": "financing",
+      "intent_aliases": [
+        "financing"
+      ],
+      "asset_id": "ams/starters/ams-starter-financing-003.wav",
+      "text_fr_ca": "Je vous donne les repères de financement sans promettre d’approbation.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 14,
+      "line_id": "ams-starter-financing-004",
+      "case_id": "starter_financing",
+      "intent": "financing",
+      "intent_aliases": [
+        "financing"
+      ],
+      "asset_id": "ams/starters/ams-starter-financing-004.wav",
+      "text_fr_ca": "Oui, je peux clarifier les paiements disponibles.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 15,
+      "line_id": "ams-starter-financing-005",
+      "case_id": "starter_financing",
+      "intent": "financing",
+      "intent_aliases": [
+        "financing"
+      ],
+      "asset_id": "ams/starters/ams-starter-financing-005.wav",
+      "text_fr_ca": "Bien sûr, je vous situe les options possibles.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 16,
+      "line_id": "ams-starter-financing-006",
+      "case_id": "starter_financing",
+      "intent": "financing",
+      "intent_aliases": [
+        "financing"
+      ],
+      "asset_id": "ams/starters/ams-starter-financing-006.wav",
+      "text_fr_ca": "Je vais rester très claire sur ce qui est connu.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 17,
+      "line_id": "ams-starter-financing-007",
+      "case_id": "starter_financing",
+      "intent": "financing",
+      "intent_aliases": [
+        "financing"
+      ],
+      "asset_id": "ams/starters/ams-starter-financing-007.wav",
+      "text_fr_ca": "D’accord — on sépare le prix et les paiements.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 18,
+      "line_id": "ams-starter-financing-008",
+      "case_id": "starter_financing",
+      "intent": "financing",
+      "intent_aliases": [
+        "financing"
+      ],
+      "asset_id": "ams/starters/ams-starter-financing-008.wav",
+      "text_fr_ca": "Oui, je vous donne les chemins de paiement mentionnés par l’AMS.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 19,
+      "line_id": "ams-starter-financing-009",
+      "case_id": "starter_financing",
+      "intent": "financing",
+      "intent_aliases": [
+        "financing"
+      ],
+      "asset_id": "ams/starters/ams-starter-financing-009.wav",
+      "text_fr_ca": "Je vous explique ça sans vous faire tourner en rond.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 20,
+      "line_id": "ams-starter-financing-010",
+      "case_id": "starter_financing",
+      "intent": "financing",
+      "intent_aliases": [
+        "financing"
+      ],
+      "asset_id": "ams/starters/ams-starter-financing-010.wav",
+      "text_fr_ca": "Parfait, je vous donne les repères de paiement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 21,
+      "line_id": "ams-starter-campus-001",
+      "case_id": "starter_campus",
+      "intent": "campus",
+      "intent_aliases": [
+        "campus_list",
+        "nearest_campus",
+        "campus_address",
+        "city_unknown"
+      ],
+      "asset_id": "ams/starters/ams-starter-campus-001.wav",
+      "text_fr_ca": "Oui — je vous situe les campus.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 22,
+      "line_id": "ams-starter-campus-002",
+      "case_id": "starter_campus",
+      "intent": "campus",
+      "intent_aliases": [
+        "campus_list",
+        "nearest_campus",
+        "campus_address",
+        "city_unknown"
+      ],
+      "asset_id": "ams/starters/ams-starter-campus-002.wav",
+      "text_fr_ca": "D’accord, regardons l’emplacement le plus utile.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 23,
+      "line_id": "ams-starter-campus-003",
+      "case_id": "starter_campus",
+      "intent": "campus",
+      "intent_aliases": [
+        "campus_list",
+        "nearest_campus",
+        "campus_address",
+        "city_unknown"
+      ],
+      "asset_id": "ams/starters/ams-starter-campus-003.wav",
+      "text_fr_ca": "Je vous donne les repères de campus.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 24,
+      "line_id": "ams-starter-campus-004",
+      "case_id": "starter_campus",
+      "intent": "campus",
+      "intent_aliases": [
+        "campus_list",
+        "nearest_campus",
+        "campus_address",
+        "city_unknown"
+      ],
+      "asset_id": "ams/starters/ams-starter-campus-004.wav",
+      "text_fr_ca": "Oui, on regarde où l’AMS est située.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 25,
+      "line_id": "ams-starter-campus-005",
+      "case_id": "starter_campus",
+      "intent": "campus",
+      "intent_aliases": [
+        "campus_list",
+        "nearest_campus",
+        "campus_address",
+        "city_unknown"
+      ],
+      "asset_id": "ams/starters/ams-starter-campus-005.wav",
+      "text_fr_ca": "Bien sûr, je vous oriente côté campus.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 26,
+      "line_id": "ams-starter-campus-006",
+      "case_id": "starter_campus",
+      "intent": "campus",
+      "intent_aliases": [
+        "campus_list",
+        "nearest_campus",
+        "campus_address",
+        "city_unknown"
+      ],
+      "asset_id": "ams/starters/ams-starter-campus-006.wav",
+      "text_fr_ca": "Je vous situe les options géographiques.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 27,
+      "line_id": "ams-starter-campus-007",
+      "case_id": "starter_campus",
+      "intent": "campus",
+      "intent_aliases": [
+        "campus_list",
+        "nearest_campus",
+        "campus_address",
+        "city_unknown"
+      ],
+      "asset_id": "ams/starters/ams-starter-campus-007.wav",
+      "text_fr_ca": "D’accord — commençons par les campus disponibles.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 28,
+      "line_id": "ams-starter-campus-008",
+      "case_id": "starter_campus",
+      "intent": "campus",
+      "intent_aliases": [
+        "campus_list",
+        "nearest_campus",
+        "campus_address",
+        "city_unknown"
+      ],
+      "asset_id": "ams/starters/ams-starter-campus-008.wav",
+      "text_fr_ca": "Oui, je vous aide à vous repérer.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 29,
+      "line_id": "ams-starter-campus-009",
+      "case_id": "starter_campus",
+      "intent": "campus",
+      "intent_aliases": [
+        "campus_list",
+        "nearest_campus",
+        "campus_address",
+        "city_unknown"
+      ],
+      "asset_id": "ams/starters/ams-starter-campus-009.wav",
+      "text_fr_ca": "Je vous donne la réponse côté localisation.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 30,
+      "line_id": "ams-starter-campus-010",
+      "case_id": "starter_campus",
+      "intent": "campus",
+      "intent_aliases": [
+        "campus_list",
+        "nearest_campus",
+        "campus_address",
+        "city_unknown"
+      ],
+      "asset_id": "ams/starters/ams-starter-campus-010.wav",
+      "text_fr_ca": "Parfait, regardons le campus qui vous concerne.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 31,
+      "line_id": "ams-starter-signup-001",
+      "case_id": "starter_signup",
+      "intent": "signup",
+      "intent_aliases": [
+        "signup_link",
+        "signup_direct"
+      ],
+      "asset_id": "ams/starters/ams-starter-signup-001.wav",
+      "text_fr_ca": "D’accord — je vais vous guider sans sauter d’étape.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 32,
+      "line_id": "ams-starter-signup-002",
+      "case_id": "starter_signup",
+      "intent": "signup",
+      "intent_aliases": [
+        "signup_link",
+        "signup_direct"
+      ],
+      "asset_id": "ams/starters/ams-starter-signup-002.wav",
+      "text_fr_ca": "Oui, je peux vous orienter vers l’inscription.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 33,
+      "line_id": "ams-starter-signup-003",
+      "case_id": "starter_signup",
+      "intent": "signup",
+      "intent_aliases": [
+        "signup_link",
+        "signup_direct"
+      ],
+      "asset_id": "ams/starters/ams-starter-signup-003.wav",
+      "text_fr_ca": "Parfait, on vérifie le bon chemin avant le lien.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 34,
+      "line_id": "ams-starter-signup-004",
+      "case_id": "starter_signup",
+      "intent": "signup",
+      "intent_aliases": [
+        "signup_link",
+        "signup_direct"
+      ],
+      "asset_id": "ams/starters/ams-starter-signup-004.wav",
+      "text_fr_ca": "Je vous aide à avancer proprement vers l’inscription.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 35,
+      "line_id": "ams-starter-signup-005",
+      "case_id": "starter_signup",
+      "intent": "signup",
+      "intent_aliases": [
+        "signup_link",
+        "signup_direct"
+      ],
+      "asset_id": "ams/starters/ams-starter-signup-005.wav",
+      "text_fr_ca": "Bien sûr — je vais vous guider vers la bonne étape.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 36,
+      "line_id": "ams-starter-signup-006",
+      "case_id": "starter_signup",
+      "intent": "signup",
+      "intent_aliases": [
+        "signup_link",
+        "signup_direct"
+      ],
+      "asset_id": "ams/starters/ams-starter-signup-006.wav",
+      "text_fr_ca": "D’accord, je vous accompagne sans rien soumettre à votre place.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 37,
+      "line_id": "ams-starter-signup-007",
+      "case_id": "starter_signup",
+      "intent": "signup",
+      "intent_aliases": [
+        "signup_link",
+        "signup_direct"
+      ],
+      "asset_id": "ams/starters/ams-starter-signup-007.wav",
+      "text_fr_ca": "Oui, on garde ça simple et officiel.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 38,
+      "line_id": "ams-starter-signup-008",
+      "case_id": "starter_signup",
+      "intent": "signup",
+      "intent_aliases": [
+        "signup_link",
+        "signup_direct"
+      ],
+      "asset_id": "ams/starters/ams-starter-signup-008.wav",
+      "text_fr_ca": "Je vous guide vers la prochaine étape d’inscription.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 39,
+      "line_id": "ams-starter-signup-009",
+      "case_id": "starter_signup",
+      "intent": "signup",
+      "intent_aliases": [
+        "signup_link",
+        "signup_direct"
+      ],
+      "asset_id": "ams/starters/ams-starter-signup-009.wav",
+      "text_fr_ca": "Parfait, on s’assure d’abord que c’est le bon parcours.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 40,
+      "line_id": "ams-starter-signup-010",
+      "case_id": "starter_signup",
+      "intent": "signup",
+      "intent_aliases": [
+        "signup_link",
+        "signup_direct"
+      ],
+      "asset_id": "ams/starters/ams-starter-signup-010.wav",
+      "text_fr_ca": "Oui — je vous aide à partir du bon endroit.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 41,
+      "line_id": "ams-starter-reserve_place-001",
+      "case_id": "starter_reserve_place",
+      "intent": "reserve_place",
+      "intent_aliases": [
+        "reserve_place"
+      ],
+      "asset_id": "ams/starters/ams-starter-reserve_place-001.wav",
+      "text_fr_ca": "Oui — je peux vous guider, sans réserver à votre place.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 42,
+      "line_id": "ams-starter-reserve_place-002",
+      "case_id": "starter_reserve_place",
+      "intent": "reserve_place",
+      "intent_aliases": [
+        "reserve_place"
+      ],
+      "asset_id": "ams/starters/ams-starter-reserve_place-002.wav",
+      "text_fr_ca": "D’accord, je vous aide à voir comment confirmer ça officiellement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 43,
+      "line_id": "ams-starter-reserve_place-003",
+      "case_id": "starter_reserve_place",
+      "intent": "reserve_place",
+      "intent_aliases": [
+        "reserve_place"
+      ],
+      "asset_id": "ams/starters/ams-starter-reserve_place-003.wav",
+      "text_fr_ca": "Je peux vous orienter, mais la confirmation doit passer par l’AMS.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 44,
+      "line_id": "ams-starter-reserve_place-004",
+      "case_id": "starter_reserve_place",
+      "intent": "reserve_place",
+      "intent_aliases": [
+        "reserve_place"
+      ],
+      "asset_id": "ams/starters/ams-starter-reserve_place-004.wav",
+      "text_fr_ca": "Oui, on va rester clair sur la bonne étape officielle.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 45,
+      "line_id": "ams-starter-reserve_place-005",
+      "case_id": "starter_reserve_place",
+      "intent": "reserve_place",
+      "intent_aliases": [
+        "reserve_place"
+      ],
+      "asset_id": "ams/starters/ams-starter-reserve_place-005.wav",
+      "text_fr_ca": "Parfait — je vous indique comment avancer sans fausse confirmation.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 46,
+      "line_id": "ams-starter-reserve_place-006",
+      "case_id": "starter_reserve_place",
+      "intent": "reserve_place",
+      "intent_aliases": [
+        "reserve_place"
+      ],
+      "asset_id": "ams/starters/ams-starter-reserve_place-006.wav",
+      "text_fr_ca": "Je vous aide à préparer la suite correctement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 47,
+      "line_id": "ams-starter-reserve_place-007",
+      "case_id": "starter_reserve_place",
+      "intent": "reserve_place",
+      "intent_aliases": [
+        "reserve_place"
+      ],
+      "asset_id": "ams/starters/ams-starter-reserve_place-007.wav",
+      "text_fr_ca": "D’accord, je vous guide vers la confirmation officielle.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 48,
+      "line_id": "ams-starter-reserve_place-008",
+      "case_id": "starter_reserve_place",
+      "intent": "reserve_place",
+      "intent_aliases": [
+        "reserve_place"
+      ],
+      "asset_id": "ams/starters/ams-starter-reserve_place-008.wav",
+      "text_fr_ca": "Oui, je vous aide à ne pas manquer l’étape importante.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 49,
+      "line_id": "ams-starter-reserve_place-009",
+      "case_id": "starter_reserve_place",
+      "intent": "reserve_place",
+      "intent_aliases": [
+        "reserve_place"
+      ],
+      "asset_id": "ams/starters/ams-starter-reserve_place-009.wav",
+      "text_fr_ca": "Je peux vous montrer le chemin, sans bloquer une place moi-même.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 50,
+      "line_id": "ams-starter-reserve_place-010",
+      "case_id": "starter_reserve_place",
+      "intent": "reserve_place",
+      "intent_aliases": [
+        "reserve_place"
+      ],
+      "asset_id": "ams/starters/ams-starter-reserve_place-010.wav",
+      "text_fr_ca": "Bien sûr, je vous oriente vers la démarche correcte.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 51,
+      "line_id": "ams-starter-continuing_ed-001",
+      "case_id": "starter_continuing_ed",
+      "intent": "continuing_ed",
+      "intent_aliases": [
+        "continuing_ed_list",
+        "specific_course",
+        "sport_course",
+        "aroma_course",
+        "lower_cost_courses"
+      ],
+      "asset_id": "ams/starters/ams-starter-continuing_ed-001.wav",
+      "text_fr_ca": "Oui — je vous donne les options plus légères.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 52,
+      "line_id": "ams-starter-continuing_ed-002",
+      "case_id": "starter_continuing_ed",
+      "intent": "continuing_ed",
+      "intent_aliases": [
+        "continuing_ed_list",
+        "specific_course",
+        "sport_course",
+        "aroma_course",
+        "lower_cost_courses"
+      ],
+      "asset_id": "ams/starters/ams-starter-continuing_ed-002.wav",
+      "text_fr_ca": "D’accord, regardons les cours à plus petit engagement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 53,
+      "line_id": "ams-starter-continuing_ed-003",
+      "case_id": "starter_continuing_ed",
+      "intent": "continuing_ed",
+      "intent_aliases": [
+        "continuing_ed_list",
+        "specific_course",
+        "sport_course",
+        "aroma_course",
+        "lower_cost_courses"
+      ],
+      "asset_id": "ams/starters/ams-starter-continuing_ed-003.wav",
+      "text_fr_ca": "Je vous situe les formations à la carte.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 54,
+      "line_id": "ams-starter-continuing_ed-004",
+      "case_id": "starter_continuing_ed",
+      "intent": "continuing_ed",
+      "intent_aliases": [
+        "continuing_ed_list",
+        "specific_course",
+        "sport_course",
+        "aroma_course",
+        "lower_cost_courses"
+      ],
+      "asset_id": "ams/starters/ams-starter-continuing_ed-004.wav",
+      "text_fr_ca": "Oui, on peut regarder les options courtes.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 55,
+      "line_id": "ams-starter-continuing_ed-005",
+      "case_id": "starter_continuing_ed",
+      "intent": "continuing_ed",
+      "intent_aliases": [
+        "continuing_ed_list",
+        "specific_course",
+        "sport_course",
+        "aroma_course",
+        "lower_cost_courses"
+      ],
+      "asset_id": "ams/starters/ams-starter-continuing_ed-005.wav",
+      "text_fr_ca": "Bien sûr, je vous donne les choix plus accessibles.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 56,
+      "line_id": "ams-starter-continuing_ed-006",
+      "case_id": "starter_continuing_ed",
+      "intent": "continuing_ed",
+      "intent_aliases": [
+        "continuing_ed_list",
+        "specific_course",
+        "sport_course",
+        "aroma_course",
+        "lower_cost_courses"
+      ],
+      "asset_id": "ams/starters/ams-starter-continuing_ed-006.wav",
+      "text_fr_ca": "Je vous montre les alternatives sans tout mélanger.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 57,
+      "line_id": "ams-starter-continuing_ed-007",
+      "case_id": "starter_continuing_ed",
+      "intent": "continuing_ed",
+      "intent_aliases": [
+        "continuing_ed_list",
+        "specific_course",
+        "sport_course",
+        "aroma_course",
+        "lower_cost_courses"
+      ],
+      "asset_id": "ams/starters/ams-starter-continuing_ed-007.wav",
+      "text_fr_ca": "D’accord, on regarde ce qui permet d’essayer d’abord.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 58,
+      "line_id": "ams-starter-continuing_ed-008",
+      "case_id": "starter_continuing_ed",
+      "intent": "continuing_ed",
+      "intent_aliases": [
+        "continuing_ed_list",
+        "specific_course",
+        "sport_course",
+        "aroma_course",
+        "lower_cost_courses"
+      ],
+      "asset_id": "ams/starters/ams-starter-continuing_ed-008.wav",
+      "text_fr_ca": "Oui — je vous donne les options de formation continue.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 59,
+      "line_id": "ams-starter-continuing_ed-009",
+      "case_id": "starter_continuing_ed",
+      "intent": "continuing_ed",
+      "intent_aliases": [
+        "continuing_ed_list",
+        "specific_course",
+        "sport_course",
+        "aroma_course",
+        "lower_cost_courses"
+      ],
+      "asset_id": "ams/starters/ams-starter-continuing_ed-009.wav",
+      "text_fr_ca": "Parfait, je vous oriente vers les formats plus courts.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 60,
+      "line_id": "ams-starter-continuing_ed-010",
+      "case_id": "starter_continuing_ed",
+      "intent": "continuing_ed",
+      "intent_aliases": [
+        "continuing_ed_list",
+        "specific_course",
+        "sport_course",
+        "aroma_course",
+        "lower_cost_courses"
+      ],
+      "asset_id": "ams/starters/ams-starter-continuing_ed-010.wav",
+      "text_fr_ca": "Je vous aide à trouver une porte d’entrée plus légère.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 61,
+      "line_id": "ams-starter-course_content-001",
+      "case_id": "starter_course_content",
+      "intent": "course_content",
+      "intent_aliases": [
+        "programme_content",
+        "course_content",
+        "prerequisites",
+        "online_hybrid",
+        "how_it_works"
+      ],
+      "asset_id": "ams/starters/ams-starter-course_content-001.wav",
+      "text_fr_ca": "Oui — je vous résume le contenu utile.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 62,
+      "line_id": "ams-starter-course_content-002",
+      "case_id": "starter_course_content",
+      "intent": "course_content",
+      "intent_aliases": [
+        "programme_content",
+        "course_content",
+        "prerequisites",
+        "online_hybrid",
+        "how_it_works"
+      ],
+      "asset_id": "ams/starters/ams-starter-course_content-002.wav",
+      "text_fr_ca": "D’accord, regardons ce que la formation couvre.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 63,
+      "line_id": "ams-starter-course_content-003",
+      "case_id": "starter_course_content",
+      "intent": "course_content",
+      "intent_aliases": [
+        "programme_content",
+        "course_content",
+        "prerequisites",
+        "online_hybrid",
+        "how_it_works"
+      ],
+      "asset_id": "ams/starters/ams-starter-course_content-003.wav",
+      "text_fr_ca": "Je vous donne l’idée claire du cours.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 64,
+      "line_id": "ams-starter-course_content-004",
+      "case_id": "starter_course_content",
+      "intent": "course_content",
+      "intent_aliases": [
+        "programme_content",
+        "course_content",
+        "prerequisites",
+        "online_hybrid",
+        "how_it_works"
+      ],
+      "asset_id": "ams/starters/ams-starter-course_content-004.wav",
+      "text_fr_ca": "Bien sûr, je vous situe le contenu.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 65,
+      "line_id": "ams-starter-course_content-005",
+      "case_id": "starter_course_content",
+      "intent": "course_content",
+      "intent_aliases": [
+        "programme_content",
+        "course_content",
+        "prerequisites",
+        "online_hybrid",
+        "how_it_works"
+      ],
+      "asset_id": "ams/starters/ams-starter-course_content-005.wav",
+      "text_fr_ca": "Oui, on regarde ce que vous allez apprendre.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 66,
+      "line_id": "ams-starter-course_content-006",
+      "case_id": "starter_course_content",
+      "intent": "course_content",
+      "intent_aliases": [
+        "programme_content",
+        "course_content",
+        "prerequisites",
+        "online_hybrid",
+        "how_it_works"
+      ],
+      "asset_id": "ams/starters/ams-starter-course_content-006.wav",
+      "text_fr_ca": "Je vous explique la partie formation simplement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 67,
+      "line_id": "ams-starter-course_content-007",
+      "case_id": "starter_course_content",
+      "intent": "course_content",
+      "intent_aliases": [
+        "programme_content",
+        "course_content",
+        "prerequisites",
+        "online_hybrid",
+        "how_it_works"
+      ],
+      "asset_id": "ams/starters/ams-starter-course_content-007.wav",
+      "text_fr_ca": "D’accord — je vous donne le contenu sans trop charger.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 68,
+      "line_id": "ams-starter-course_content-008",
+      "case_id": "starter_course_content",
+      "intent": "course_content",
+      "intent_aliases": [
+        "programme_content",
+        "course_content",
+        "prerequisites",
+        "online_hybrid",
+        "how_it_works"
+      ],
+      "asset_id": "ams/starters/ams-starter-course_content-008.wav",
+      "text_fr_ca": "Parfait, je vous résume les points importants.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 69,
+      "line_id": "ams-starter-course_content-009",
+      "case_id": "starter_course_content",
+      "intent": "course_content",
+      "intent_aliases": [
+        "programme_content",
+        "course_content",
+        "prerequisites",
+        "online_hybrid",
+        "how_it_works"
+      ],
+      "asset_id": "ams/starters/ams-starter-course_content-009.wav",
+      "text_fr_ca": "Je vous aide à voir si le contenu correspond.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 70,
+      "line_id": "ams-starter-course_content-010",
+      "case_id": "starter_course_content",
+      "intent": "course_content",
+      "intent_aliases": [
+        "programme_content",
+        "course_content",
+        "prerequisites",
+        "online_hybrid",
+        "how_it_works"
+      ],
+      "asset_id": "ams/starters/ams-starter-course_content-010.wav",
+      "text_fr_ca": "Oui, je vous donne le portrait du cours.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 71,
+      "line_id": "ams-starter-human-001",
+      "case_id": "starter_human",
+      "intent": "human",
+      "intent_aliases": [
+        "human",
+        "julie"
+      ],
+      "asset_id": "ams/starters/ams-starter-human-001.wav",
+      "text_fr_ca": "Oui — je peux vous orienter vers le bon contact.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 72,
+      "line_id": "ams-starter-human-002",
+      "case_id": "starter_human",
+      "intent": "human",
+      "intent_aliases": [
+        "human",
+        "julie"
+      ],
+      "asset_id": "ams/starters/ams-starter-human-002.wav",
+      "text_fr_ca": "D’accord, je vous donne le chemin pour joindre quelqu’un.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 73,
+      "line_id": "ams-starter-human-003",
+      "case_id": "starter_human",
+      "intent": "human",
+      "intent_aliases": [
+        "human",
+        "julie"
+      ],
+      "asset_id": "ams/starters/ams-starter-human-003.wav",
+      "text_fr_ca": "Je peux vous préparer la bonne prochaine étape humaine.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 74,
+      "line_id": "ams-starter-human-004",
+      "case_id": "starter_human",
+      "intent": "human",
+      "intent_aliases": [
+        "human",
+        "julie"
+      ],
+      "asset_id": "ams/starters/ams-starter-human-004.wav",
+      "text_fr_ca": "Oui, on va passer par le contact officiel.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 75,
+      "line_id": "ams-starter-human-005",
+      "case_id": "starter_human",
+      "intent": "human",
+      "intent_aliases": [
+        "human",
+        "julie"
+      ],
+      "asset_id": "ams/starters/ams-starter-human-005.wav",
+      "text_fr_ca": "Bien sûr, je vous oriente sans prétendre transférer l’appel.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 76,
+      "line_id": "ams-starter-human-006",
+      "case_id": "starter_human",
+      "intent": "human",
+      "intent_aliases": [
+        "human",
+        "julie"
+      ],
+      "asset_id": "ams/starters/ams-starter-human-006.wav",
+      "text_fr_ca": "Je vous donne le bon point de contact.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 77,
+      "line_id": "ams-starter-human-007",
+      "case_id": "starter_human",
+      "intent": "human",
+      "intent_aliases": [
+        "human",
+        "julie"
+      ],
+      "asset_id": "ams/starters/ams-starter-human-007.wav",
+      "text_fr_ca": "D’accord, je vous aide à formuler la demande.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 78,
+      "line_id": "ams-starter-human-008",
+      "case_id": "starter_human",
+      "intent": "human",
+      "intent_aliases": [
+        "human",
+        "julie"
+      ],
+      "asset_id": "ams/starters/ams-starter-human-008.wav",
+      "text_fr_ca": "Oui — je peux vous guider vers une personne de l’AMS.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 79,
+      "line_id": "ams-starter-human-009",
+      "case_id": "starter_human",
+      "intent": "human",
+      "intent_aliases": [
+        "human",
+        "julie"
+      ],
+      "asset_id": "ams/starters/ams-starter-human-009.wav",
+      "text_fr_ca": "Parfait, je vous donne la voie officielle.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 80,
+      "line_id": "ams-starter-human-010",
+      "case_id": "starter_human",
+      "intent": "human",
+      "intent_aliases": [
+        "human",
+        "julie"
+      ],
+      "asset_id": "ams/starters/ams-starter-human-010.wav",
+      "text_fr_ca": "Je vous aide à rejoindre le bon endroit.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 81,
+      "line_id": "ams-starter-repair-001",
+      "case_id": "starter_repair",
+      "intent": "repair",
+      "intent_aliases": [
+        "repeat",
+        "unclear",
+        "didnt_hear",
+        "stt_failure",
+        "frustrated"
+      ],
+      "asset_id": "ams/starters/ams-starter-repair-001.wav",
+      "text_fr_ca": "Pas de souci, je reprends simplement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 82,
+      "line_id": "ams-starter-repair-002",
+      "case_id": "starter_repair",
+      "intent": "repair",
+      "intent_aliases": [
+        "repeat",
+        "unclear",
+        "didnt_hear",
+        "stt_failure",
+        "frustrated"
+      ],
+      "asset_id": "ams/starters/ams-starter-repair-002.wav",
+      "text_fr_ca": "D’accord, je vais le redire plus clairement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 83,
+      "line_id": "ams-starter-repair-003",
+      "case_id": "starter_repair",
+      "intent": "repair",
+      "intent_aliases": [
+        "repeat",
+        "unclear",
+        "didnt_hear",
+        "stt_failure",
+        "frustrated"
+      ],
+      "asset_id": "ams/starters/ams-starter-repair-003.wav",
+      "text_fr_ca": "Oui, je reformule.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 84,
+      "line_id": "ams-starter-repair-004",
+      "case_id": "starter_repair",
+      "intent": "repair",
+      "intent_aliases": [
+        "repeat",
+        "unclear",
+        "didnt_hear",
+        "stt_failure",
+        "frustrated"
+      ],
+      "asset_id": "ams/starters/ams-starter-repair-004.wav",
+      "text_fr_ca": "Je reprends ça plus lentement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 85,
+      "line_id": "ams-starter-repair-005",
+      "case_id": "starter_repair",
+      "intent": "repair",
+      "intent_aliases": [
+        "repeat",
+        "unclear",
+        "didnt_hear",
+        "stt_failure",
+        "frustrated"
+      ],
+      "asset_id": "ams/starters/ams-starter-repair-005.wav",
+      "text_fr_ca": "Pas de problème, on remet ça au clair.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 86,
+      "line_id": "ams-starter-repair-006",
+      "case_id": "starter_repair",
+      "intent": "repair",
+      "intent_aliases": [
+        "repeat",
+        "unclear",
+        "didnt_hear",
+        "stt_failure",
+        "frustrated"
+      ],
+      "asset_id": "ams/starters/ams-starter-repair-006.wav",
+      "text_fr_ca": "Je vous le redis en plus simple.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 87,
+      "line_id": "ams-starter-repair-007",
+      "case_id": "starter_repair",
+      "intent": "repair",
+      "intent_aliases": [
+        "repeat",
+        "unclear",
+        "didnt_hear",
+        "stt_failure",
+        "frustrated"
+      ],
+      "asset_id": "ams/starters/ams-starter-repair-007.wav",
+      "text_fr_ca": "D’accord — version courte.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 88,
+      "line_id": "ams-starter-repair-008",
+      "case_id": "starter_repair",
+      "intent": "repair",
+      "intent_aliases": [
+        "repeat",
+        "unclear",
+        "didnt_hear",
+        "stt_failure",
+        "frustrated"
+      ],
+      "asset_id": "ams/starters/ams-starter-repair-008.wav",
+      "text_fr_ca": "Oui, je clarifie.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 89,
+      "line_id": "ams-starter-repair-009",
+      "case_id": "starter_repair",
+      "intent": "repair",
+      "intent_aliases": [
+        "repeat",
+        "unclear",
+        "didnt_hear",
+        "stt_failure",
+        "frustrated"
+      ],
+      "asset_id": "ams/starters/ams-starter-repair-009.wav",
+      "text_fr_ca": "Je reprends depuis le point utile.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 90,
+      "line_id": "ams-starter-repair-010",
+      "case_id": "starter_repair",
+      "intent": "repair",
+      "intent_aliases": [
+        "repeat",
+        "unclear",
+        "didnt_hear",
+        "stt_failure",
+        "frustrated"
+      ],
+      "asset_id": "ams/starters/ams-starter-repair-010.wav",
+      "text_fr_ca": "Pas de souci, je simplifie.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 91,
+      "line_id": "ams-starter-dates-001",
+      "case_id": "starter_dates",
+      "intent": "dates",
+      "intent_aliases": [
+        "dates",
+        "availability",
+        "schedule"
+      ],
+      "asset_id": "ams/starters/ams-starter-dates-001.wav",
+      "text_fr_ca": "Oui — je vous donne ce qui est connu sur les dates.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 92,
+      "line_id": "ams-starter-dates-002",
+      "case_id": "starter_dates",
+      "intent": "dates",
+      "intent_aliases": [
+        "dates",
+        "availability",
+        "schedule"
+      ],
+      "asset_id": "ams/starters/ams-starter-dates-002.wav",
+      "text_fr_ca": "D’accord, je vais rester prudente sur le calendrier.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 93,
+      "line_id": "ams-starter-dates-003",
+      "case_id": "starter_dates",
+      "intent": "dates",
+      "intent_aliases": [
+        "dates",
+        "availability",
+        "schedule"
+      ],
+      "asset_id": "ams/starters/ams-starter-dates-003.wav",
+      "text_fr_ca": "Je vous situe les périodes sans inventer de date précise.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 94,
+      "line_id": "ams-starter-dates-004",
+      "case_id": "starter_dates",
+      "intent": "dates",
+      "intent_aliases": [
+        "dates",
+        "availability",
+        "schedule"
+      ],
+      "asset_id": "ams/starters/ams-starter-dates-004.wav",
+      "text_fr_ca": "Oui, regardons les repères de session.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 95,
+      "line_id": "ams-starter-dates-005",
+      "case_id": "starter_dates",
+      "intent": "dates",
+      "intent_aliases": [
+        "dates",
+        "availability",
+        "schedule"
+      ],
+      "asset_id": "ams/starters/ams-starter-dates-005.wav",
+      "text_fr_ca": "Bien sûr, je vous donne l’information disponible.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 96,
+      "line_id": "ams-starter-dates-006",
+      "case_id": "starter_dates",
+      "intent": "dates",
+      "intent_aliases": [
+        "dates",
+        "availability",
+        "schedule"
+      ],
+      "asset_id": "ams/starters/ams-starter-dates-006.wav",
+      "text_fr_ca": "Je vais distinguer les périodes générales des dates exactes.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 97,
+      "line_id": "ams-starter-dates-007",
+      "case_id": "starter_dates",
+      "intent": "dates",
+      "intent_aliases": [
+        "dates",
+        "availability",
+        "schedule"
+      ],
+      "asset_id": "ams/starters/ams-starter-dates-007.wav",
+      "text_fr_ca": "D’accord — pour les dates, je reste sur ce qui est confirmé.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 98,
+      "line_id": "ams-starter-dates-008",
+      "case_id": "starter_dates",
+      "intent": "dates",
+      "intent_aliases": [
+        "dates",
+        "availability",
+        "schedule"
+      ],
+      "asset_id": "ams/starters/ams-starter-dates-008.wav",
+      "text_fr_ca": "Oui, je vous aide à cadrer le calendrier.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 99,
+      "line_id": "ams-starter-dates-009",
+      "case_id": "starter_dates",
+      "intent": "dates",
+      "intent_aliases": [
+        "dates",
+        "availability",
+        "schedule"
+      ],
+      "asset_id": "ams/starters/ams-starter-dates-009.wav",
+      "text_fr_ca": "Je vous donne les repères sans prétendre voir les places en direct.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 100,
+      "line_id": "ams-starter-dates-010",
+      "case_id": "starter_dates",
+      "intent": "dates",
+      "intent_aliases": [
+        "dates",
+        "availability",
+        "schedule"
+      ],
+      "asset_id": "ams/starters/ams-starter-dates-010.wav",
+      "text_fr_ca": "Parfait, on regarde les sessions habituelles.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 101,
+      "line_id": "ams-starter-identity-001",
+      "case_id": "starter_identity",
+      "intent": "identity",
+      "intent_aliases": [
+        "greeting",
+        "greeting_allo",
+        "how_are_you",
+        "what_can_help",
+        "identity"
+      ],
+      "asset_id": "ams/starters/ams-starter-identity-001.wav",
+      "text_fr_ca": "Oui — je peux vous aider avec l’AMS.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 102,
+      "line_id": "ams-starter-identity-002",
+      "case_id": "starter_identity",
+      "intent": "identity",
+      "intent_aliases": [
+        "greeting",
+        "greeting_allo",
+        "how_are_you",
+        "what_can_help",
+        "identity"
+      ],
+      "asset_id": "ams/starters/ams-starter-identity-002.wav",
+      "text_fr_ca": "Bien sûr, je suis là pour vous orienter.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 103,
+      "line_id": "ams-starter-identity-003",
+      "case_id": "starter_identity",
+      "intent": "identity",
+      "intent_aliases": [
+        "greeting",
+        "greeting_allo",
+        "how_are_you",
+        "what_can_help",
+        "identity"
+      ],
+      "asset_id": "ams/starters/ams-starter-identity-003.wav",
+      "text_fr_ca": "D’accord, je vous aide à trouver le bon chemin.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 104,
+      "line_id": "ams-starter-identity-004",
+      "case_id": "starter_identity",
+      "intent": "identity",
+      "intent_aliases": [
+        "greeting",
+        "greeting_allo",
+        "how_are_you",
+        "what_can_help",
+        "identity"
+      ],
+      "asset_id": "ams/starters/ams-starter-identity-004.wav",
+      "text_fr_ca": "Oui, dites-moi ce que vous voulez vérifier.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 105,
+      "line_id": "ams-starter-identity-005",
+      "case_id": "starter_identity",
+      "intent": "identity",
+      "intent_aliases": [
+        "greeting",
+        "greeting_allo",
+        "how_are_you",
+        "what_can_help",
+        "identity"
+      ],
+      "asset_id": "ams/starters/ams-starter-identity-005.wav",
+      "text_fr_ca": "Je peux vous aider avec les formations, les prix et les campus.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 106,
+      "line_id": "ams-starter-identity-006",
+      "case_id": "starter_identity",
+      "intent": "identity",
+      "intent_aliases": [
+        "greeting",
+        "greeting_allo",
+        "how_are_you",
+        "what_can_help",
+        "identity"
+      ],
+      "asset_id": "ams/starters/ams-starter-identity-006.wav",
+      "text_fr_ca": "Parfait, on y va simplement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 107,
+      "line_id": "ams-starter-identity-007",
+      "case_id": "starter_identity",
+      "intent": "identity",
+      "intent_aliases": [
+        "greeting",
+        "greeting_allo",
+        "how_are_you",
+        "what_can_help",
+        "identity"
+      ],
+      "asset_id": "ams/starters/ams-starter-identity-007.wav",
+      "text_fr_ca": "Oui — je vous écoute.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 108,
+      "line_id": "ams-starter-identity-008",
+      "case_id": "starter_identity",
+      "intent": "identity",
+      "intent_aliases": [
+        "greeting",
+        "greeting_allo",
+        "how_are_you",
+        "what_can_help",
+        "identity"
+      ],
+      "asset_id": "ams/starters/ams-starter-identity-008.wav",
+      "text_fr_ca": "Bien sûr, je vais vous guider.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 109,
+      "line_id": "ams-starter-identity-009",
+      "case_id": "starter_identity",
+      "intent": "identity",
+      "intent_aliases": [
+        "greeting",
+        "greeting_allo",
+        "how_are_you",
+        "what_can_help",
+        "identity"
+      ],
+      "asset_id": "ams/starters/ams-starter-identity-009.wav",
+      "text_fr_ca": "D’accord, on regarde ça étape par étape.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 110,
+      "line_id": "ams-starter-identity-010",
+      "case_id": "starter_identity",
+      "intent": "identity",
+      "intent_aliases": [
+        "greeting",
+        "greeting_allo",
+        "how_are_you",
+        "what_can_help",
+        "identity"
+      ],
+      "asset_id": "ams/starters/ams-starter-identity-010.wav",
+      "text_fr_ca": "Je suis là pour clarifier l’information AMS.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 111,
+      "line_id": "ams-starter-generic-001",
+      "case_id": "starter_generic",
+      "intent": "generic",
+      "intent_aliases": [],
+      "asset_id": "ams/starters/ams-starter-generic-001.wav",
+      "text_fr_ca": "Oui — je vérifie le bon angle.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 112,
+      "line_id": "ams-starter-generic-002",
+      "case_id": "starter_generic",
+      "intent": "generic",
+      "intent_aliases": [],
+      "asset_id": "ams/starters/ams-starter-generic-002.wav",
+      "text_fr_ca": "D’accord, je regarde ça proprement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 113,
+      "line_id": "ams-starter-generic-003",
+      "case_id": "starter_generic",
+      "intent": "generic",
+      "intent_aliases": [],
+      "asset_id": "ams/starters/ams-starter-generic-003.wav",
+      "text_fr_ca": "Je vais vous répondre simplement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 114,
+      "line_id": "ams-starter-generic-004",
+      "case_id": "starter_generic",
+      "intent": "generic",
+      "intent_aliases": [],
+      "asset_id": "ams/starters/ams-starter-generic-004.wav",
+      "text_fr_ca": "Bien sûr, je m’en occupe.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 115,
+      "line_id": "ams-starter-generic-005",
+      "case_id": "starter_generic",
+      "intent": "generic",
+      "intent_aliases": [],
+      "asset_id": "ams/starters/ams-starter-generic-005.wav",
+      "text_fr_ca": "Je regarde le meilleur point d’entrée.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 116,
+      "line_id": "ams-starter-generic-006",
+      "case_id": "starter_generic",
+      "intent": "generic",
+      "intent_aliases": [],
+      "asset_id": "ams/starters/ams-starter-generic-006.wav",
+      "text_fr_ca": "D’accord, on garde ça clair.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 117,
+      "line_id": "ams-starter-generic-007",
+      "case_id": "starter_generic",
+      "intent": "generic",
+      "intent_aliases": [],
+      "asset_id": "ams/starters/ams-starter-generic-007.wav",
+      "text_fr_ca": "Oui, je vous aide avec ça.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 118,
+      "line_id": "ams-starter-generic-008",
+      "case_id": "starter_generic",
+      "intent": "generic",
+      "intent_aliases": [],
+      "asset_id": "ams/starters/ams-starter-generic-008.wav",
+      "text_fr_ca": "Je vais vous donner la réponse la plus utile.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 119,
+      "line_id": "ams-starter-generic-009",
+      "case_id": "starter_generic",
+      "intent": "generic",
+      "intent_aliases": [],
+      "asset_id": "ams/starters/ams-starter-generic-009.wav",
+      "text_fr_ca": "Parfait, je regarde le contexte.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    },
+    {
+      "sequence": 120,
+      "line_id": "ams-starter-generic-010",
+      "case_id": "starter_generic",
+      "intent": "generic",
+      "intent_aliases": [],
+      "asset_id": "ams/starters/ams-starter-generic-010.wav",
+      "text_fr_ca": "Oui — on y va calmement.",
+      "target_speed": 0.75,
+      "interruptible": false,
+      "notes": "Contextual first-audio starter; must not imply fake external action."
+    }
+  ]
+}

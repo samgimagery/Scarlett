@@ -42,6 +42,8 @@ secrets.*
 
 # Product voice assets intentionally committed for the AMS cached-first prototype
 !scarlett_core/voice/assets/ams/*.wav
+!scarlett_core/voice/assets/ams/starters/
+!scarlett_core/voice/assets/ams/starters/*.wav
 
 # macOS / editor
 .DS_Store
