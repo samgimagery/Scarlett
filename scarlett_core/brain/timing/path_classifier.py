@@ -130,8 +130,10 @@ def rule_scores(norm: str, tokens: set[str]) -> dict[str, tuple[float, str]]:
         add("beginner_path", 0.98, "rule:beginner_stage")
     if _has_any(norm, "deja etudie", "diplome", "travaille deja", "comme masso", "une base", "continuer apres ma formation", "deja massotherapeute"):
         add("trained_path", 0.98, "rule:trained_stage")
-    if _has_any(norm, "deja inscrit", "etudiants", "votre ecole presentement", "dossier etudiant", "etudiante actuelle", "etudiant actuel"):
+    if _has_any(norm, "deja inscrit", "déjà inscrit", "je suis inscrit", "je suis inscrite", "etudiants", "votre ecole presentement", "dossier etudiant", "etudiante actuelle", "etudiant actuel", "moodle", "plateforme", "dossier academique", "ma cohorte"):
         add("current_student", 0.98, "rule:current_student")
+    if _has_any(norm, "decourage", "découragé", "stress", "anxiete", "anxiété", "besoin d aide") and _has_any(norm, "je suis", "etudiant", "etudiante", "inscrit", "inscrite", "formation"):
+        add("current_student", 0.97, "rule:student_support_emotional")
     if _has_any(norm, "pas quel niveau", "quelle formation prendre", "choisir le bon parcours", "bon depart", "melange", "par ou commencer"):
         add("unsure_start", 0.96, "rule:unsure_start")
     if _has_any(norm, "difference entre", "versus", "choisir entre", "sauter au deuxieme", "niveau deux est pour moi", "n1 et n2"):
@@ -191,8 +193,12 @@ def rule_scores(norm: str, tokens: set[str]) -> dict[str, tuple[float, str]]:
         add("continuing_ed_list", 0.97, "rule:continuing_ed_list")
     if _has_any(norm, "drainage", "lymphatique"):
         add("specific_course", 0.98, "rule:specific_drainage")
-    if _has_any(norm, "sportif", "sportifs", "athletique", "sport est offert"):
+    if _has_any(norm, "massage sportif", "sportif", "sportifs", "athletique", "sport est offert") or ("sport" in tokens and _has_any(norm, "cours", "formation", "atelier", "ateliers")):
         add("sport_course", 0.98, "rule:sport_course")
+    if _has_any(norm, "stress", "anti stress", "anti-stress", "detente", "détente", "relaxation", "relaxant"):
+        add("continuing_ed_list", 0.97, "rule:stress_relaxation_course_goal")
+    if _has_any(norm, "spa", "coquillages chauds", "balles de sel", "soins relaxants"):
+        add("continuing_ed_list", 0.97, "rule:spa_relaxation_course_goal")
     if _has_any(norm, "aroma", "aromatherapie", "huiles essentielles", "aromatique"):
         add("aroma_course", 0.98, "rule:aroma_course")
 

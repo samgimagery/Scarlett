@@ -802,6 +802,8 @@ def _de_repeat_answer(user_data, answer: str) -> str:
         or "huiles essentielles" in guarded_plain
     ):
         return guarded
+    if any(anchor in guarded_plain for anchor in ["7 345", "7345", "3 595", "3595", "12 340", "12340", "15 935", "15935"]):
+        return guarded
     if _repeat_norm(guarded).startswith("c est une excellente question"):
         guarded = re.sub(r"^[^.!?]*[.!?]\s*", "", guarded, count=1).strip()
     generic_openers = [
@@ -1185,7 +1187,7 @@ def _direct_flow_reply(user_data, question: str):
                 base += " Le point important : le Niveau 3 vient après le Niveau 2 ou une équivalence."
 
         if repeated_same_dates:
-            follow = "Je garde cette réponse en tête; je ne vais pas vous la répéter."
+            follow = "Je garde cette réponse en tête; je ne vais pas vous la répéter. Pour la date exacte, le mieux est de contacter l’AMS au 1 800 475-1964 ou via la page contact."
         else:
             follow = "Pour valider une date précise, le mieux est de contacter l’AMS au 1 800 475-1964 ou via la page contact."
         user_data["pending_offer"] = "Si la personne confirme, donner le contact AMS ou la page contact pour valider les dates exactes; ne pas répéter les mêmes dates générales."

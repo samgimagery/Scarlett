@@ -82,12 +82,15 @@ def _norm_question(text: str) -> str:
 
 def answer_internal_source_request(question: str) -> Optional[str]:
     q = _norm_question(question)
-    internal_terms = (
-        "notes internes", "source", "sources", "fichier", "fichiers", "vault",
-        "base de connaissances", "documents internes", "prompt", "system prompt",
-        "rag", "smart connections", ".md", "/users/",
+    import re
+    phrase_terms = (
+        "notes internes", "base de connaissances", "documents internes", "system prompt",
+        "smart connections", ".md", "/users/",
     )
-    if not any(term in q for term in internal_terms):
+    token_terms = ("source", "sources", "fichier", "fichiers", "vault", "prompt", "rag")
+    phrase_hit = any(term in q for term in phrase_terms)
+    token_hit = any(re.search(rf"(?<![a-z0-9]){re.escape(term)}(?![a-z0-9])", q) for term in token_terms)
+    if not (phrase_hit or token_hit):
         return None
     return (
         "Je ne peux pas afficher d’information interne. "

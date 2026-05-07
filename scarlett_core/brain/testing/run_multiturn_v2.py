@@ -114,6 +114,63 @@ SCENARIOS: list[Scenario] = [
             TurnSpec("ok alors quels programmes offrez vous", contains=["Niveau 1", "cours à la carte"], source_contains=["local_continuing_ed_layer"], intent="continuing_ed_list"),
         ],
     ),
+    Scenario(
+        id="price_ladder_totals_no_drift",
+        persona="Caller walks through all main price anchors and totals",
+        turns=[
+            TurnSpec("combien pour le premier niveau", contains=["4 995", "104"], source_contains=["local_pricing_layer"], intent="price_n1"),
+            TurnSpec("combien pour le deuxième niveau", contains=["7 345", "111"], source_contains=["local_pricing_layer"], intent="price_n2"),
+            TurnSpec("prix du troisième niveau", contains=["3 595", "97"], source_contains=["local_pricing_layer"], intent="price_n3"),
+            TurnSpec("total n1 plus n2", contains=["12 340"], source_contains=["local_pricing_layer"], intent="total_n1_n2"),
+            TurnSpec("prix complet de la formation", contains=["15 935"], intent="total_all"),
+        ],
+    ),
+    Scenario(
+        id="signup_gating_before_form",
+        persona="Ready prospect asks to register but should receive pre-form check before form push",
+        turns=[
+            TurnSpec("je veux m inscrire", contains=["avant", "formulaire"], forbids=["https://www.academiedemassage.com/inscription/"], max_similarity_to_previous=1.0),
+            TurnSpec("je débute complètement", contains=["Niveau 1"], forbids=["https://www.academiedemassage.com/inscription/"], max_similarity_to_previous=1.0),
+            TurnSpec("combien ça coûte", contains=["4 995", "104"], intent="price_n1"),
+        ],
+    ),
+    Scenario(
+        id="current_student_support_not_sales",
+        persona="Current student asks support questions and should not be treated as a prospect",
+        turns=[
+            TurnSpec("je suis inscrit au niveau 1", contains=["étudiant", "AMS"], source_contains=["local_current_student_layer"], intent="current_student"),
+            TurnSpec("j ai un problème avec moodle", contains=["Moodle", "problème"], source_contains=["local_current_student_layer"], intent="current_student"),
+            TurnSpec("je suis inscrite et je suis découragée et stressée", contains=["désolée", "AMS"], source_contains=["local_current_student_layer"], intent="current_student"),
+        ],
+    ),
+    Scenario(
+        id="goal_switch_sport_to_stress",
+        persona="Caller changes continuing-ed goals; Scarlett should follow the new goal",
+        turns=[
+            TurnSpec("j aime le sport avez vous des cours", contains=["Massage sportif", "MyoFlossing"], source_contains=["local_continuing_ed_layer"]),
+            TurnSpec("finalement plutôt stress détente", contains=["stress", "Massage neurosensoriel"], source_contains=["local_continuing_ed_layer"]),
+            TurnSpec("et spa relaxation", contains=["spa", "coquillages chauds"], source_contains=["local_continuing_ed_layer"]),
+        ],
+    ),
+    Scenario(
+        id="repair_and_frustration_to_human",
+        persona="Caller has repair needs, frustration, then human handoff",
+        turns=[
+            TurnSpec("répète svp", contains=["redis"], intent="repeat"),
+            TurnSpec("je n ai pas entendu la fin", contains=["reformuler"], intent="didnt_hear"),
+            TurnSpec("ça ne répond jamais", contains=["frustrant", "aider"], intent="frustrated"),
+            TurnSpec("agent humain s il vous plaît", contains=["1 800 475-1964", "contact"], source_contains=["local_handoff_layer"], intent="human"),
+        ],
+    ),
+    Scenario(
+        id="dates_to_contact_without_fake_calendar",
+        persona="Caller asks dates and exact availability; Scarlett should not claim live calendar access",
+        turns=[
+            TurnSpec("prochaine date niveau un", contains=["septembre", "janvier"], forbids=["je vérifie", "calendrier en direct"]),
+            TurnSpec("est ce que tu peux vérifier la date exacte", contains=["1 800 475-1964"], forbids=["je viens de vérifier", "calendrier"], max_similarity_to_previous=1.0),
+            TurnSpec("prendre rendez vous pour confirmer", contains=["rendez-vous", "1 800 475-1964"], source_contains=["local_handoff_layer"], intent="human"),
+        ],
+    ),
 ]
 
 

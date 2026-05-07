@@ -246,6 +246,8 @@ def render_variant(intent: str, scope: str = "warm", facts: dict[str, Any] | Non
 def should_apply_polish(*, intent: str | None, source_layer: str | None, model: str | None, top_score: float = 0) -> bool:
     if intent not in SAFE_POLISH_INTENTS:
         return False
+    if source_layer == "local_continuing_ed_layer" and intent not in {"aroma_course"}:
+        return False
     if source_layer in DETERMINISTIC_POLISH_SOURCES:
         return True
     # For generated/RAG answers, only apply a short service opener to
