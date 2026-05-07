@@ -44,6 +44,20 @@ FR_CA_VOICE_REF = os.path.expanduser(os.environ.get(
 ))
 FR_CA_VOICE_REF_TEXT = os.environ.get("SCARLETT_FR_CA_VOICE_REF_TEXT", "")
 
+# Merged FR-CA LoRA clone. Preferred for the AMS/Mind Vault demo when present.
+FR_CA_LORA_MODEL = os.path.expanduser(os.environ.get(
+    "SCARLETT_FR_CA_LORA_MODEL",
+    "~/Media/voices/french_sources/xUiKafk2gWM/qwen3_tts_fr_lora_overnight_20260504-215150/merged_out/merged"
+))
+FR_CA_LORA_REF_AUDIO = os.path.expanduser(os.environ.get(
+    "SCARLETT_FR_CA_LORA_REF_AUDIO",
+    "~/Media/voices/french_sources/xUiKafk2gWM/qwen3_tts_pilot_15min_dataset/clips/fr_voice_0000.wav"
+))
+FR_CA_LORA_REF_TEXT = os.environ.get(
+    "SCARLETT_FR_CA_LORA_REF_TEXT",
+    "ses espérances soient flétries. Il est plus jeune que moi, sinon de fait du moins comme sentiment."
+)
+
 # Old HER reference (12s) — kept for fallback only, not preferred for French.
 HER_VOICE_REF = os.path.expanduser("~/Media/voices/her_reference_10s.wav")
 HER_VOICE_REF_TEXT = "Earlier I was thinking about how I was annoyed, and it's gonna sound strange."
@@ -79,6 +93,8 @@ _kokoro_pipeline = None
 _kokoro_lang = None
 _finetuned_model = None
 _finetuned_model_loaded = False
+_fr_ca_lora_model = None
+_fr_ca_lora_model_loaded = False
 _csm_model = None
 _csm_model_loaded = False
 
@@ -133,12 +149,18 @@ def generate_voice(text, lang="en", voice=None, speed=0.9):
     if voice and os.path.isfile(voice):
         # Explicit reference audio path — use zero-shot cloning
         return _generate_qwen3_clone(text, voice, lang)
+    elif lang == "fr" and os.path.isdir(FR_CA_LORA_MODEL):
+        # Preferred French path: merged overnight FR-CA LoRA clone.
+        return _generate_qwen3_fr_ca_lora(text, speed=speed)
+    elif lang == "fr" and os.path.isfile(FR_CA_VOICE_REF):
+        # Fallback French path: one-shot reference clone.
+        # The fine-tuned EN model and old HER fallback can sound male in French.
+        return _generate_qwen3_clone(text, FR_CA_VOICE_REF, lang, FR_CA_VOICE_REF_TEXT or None)
     elif VOICE_MODE == "finetuned" and os.path.isdir(FINETUNED_MODEL) and lang == "en":
         # Fine-tuned model — best quality for English, no reference needed
-        # French sounds male with fine-tuned model — use zero-shot clone instead
         return _generate_qwen3_finetuned(text, lang)
     elif (VOICE_MODE in ("finetuned", "clone")) and os.path.isfile(HER_VOICE_REF):
-        # Zero-shot clone mode (also used for French with fine-tuned setting)
+        # Zero-shot clone fallback for non-French clone mode.
         return _generate_qwen3_clone(text, HER_VOICE_REF, lang, HER_VOICE_REF_TEXT)
     else:
         # Fallback to Kokoro preset voice
@@ -525,6 +547,76 @@ def _trim_silence(audio_path, threshold=0.01, min_leading_ms=80, min_trailing_ms
     except Exception as e:
         logger.warning(f"Silence trimming failed: {e}")
         return audio_path
+
+
+def _load_fr_ca_lora_model():
+    """Load and cache the merged overnight FR-CA LoRA model."""
+    global _fr_ca_lora_model, _fr_ca_lora_model_loaded
+
+    if _fr_ca_lora_model_loaded and _fr_ca_lora_model is not None:
+        return _fr_ca_lora_model
+
+    from mlx_audio.tts.utils import load_model
+    import mlx.core as mx
+
+    logger.info("Loading merged FR-CA Scarlett LoRA model (one-time)...")
+    start = time.time()
+    model = load_model(BASE_MODEL, strict=False)
+    weights = mx.load(os.path.join(FR_CA_LORA_MODEL, "model.safetensors"))
+    model.load_weights(list(weights.items()), strict=False)
+    mx.eval(model.parameters())
+    _fr_ca_lora_model = model
+    _fr_ca_lora_model_loaded = True
+    logger.info(f"FR-CA LoRA model loaded in {time.time() - start:.1f}s")
+    return model
+
+
+def _generate_qwen3_fr_ca_lora(text, speed=0.9):
+    """Generate French audio using the merged overnight FR-CA LoRA clone."""
+    try:
+        from mlx_audio.tts.generate import generate_audio
+
+        output_dir = os.path.expanduser("~/Media/voices/tmp")
+        os.makedirs(output_dir, exist_ok=True)
+        gen_id = f"scarlett_fr_lora_{int(time.time() * 1000)}"
+        output_path = os.path.join(output_dir, gen_id)
+        os.makedirs(output_path, exist_ok=True)
+
+        start = time.time()
+        model = _load_fr_ca_lora_model()
+        generate_audio(
+            text=text,
+            output_path=output_path,
+            model=model,
+            lang_code="fr",
+            speed=speed,
+            ref_audio=FR_CA_LORA_REF_AUDIO,
+            ref_text=FR_CA_LORA_REF_TEXT,
+            stt_model=None,
+        )
+
+        actual_file = None
+        for f in os.listdir(output_path):
+            if f.endswith('.wav'):
+                actual_file = os.path.join(output_path, f)
+                break
+
+        if not actual_file or not os.path.exists(actual_file):
+            logger.error(f"No FR-CA LoRA audio generated at {output_path}")
+            return None
+
+        actual_file = _trim_silence(actual_file)
+        elapsed = time.time() - start
+        size = os.path.getsize(actual_file)
+        logger.info(f"FR-CA LoRA voice: {size/1024:.1f}KB in {elapsed:.1f}s")
+        return actual_file
+
+    except Exception as e:
+        logger.error(f"FR-CA LoRA generation failed: {e}")
+        logger.info("Falling back to zero-shot FR-CA reference clone")
+        if os.path.isfile(FR_CA_VOICE_REF):
+            return _generate_qwen3_clone(text, FR_CA_VOICE_REF, "fr", FR_CA_VOICE_REF_TEXT or None)
+        return None
 
 
 def _generate_qwen3_finetuned(text, lang="en"):

@@ -1,0 +1,21 @@
+{
+  "name": "Scarlett FR-CA Live Flow — Comment ça fonctionne",
+  "version": "2026-05-04-fr-ca-live-flow-comment-ca-fonctionne-v1",
+  "req": "REQ-108",
+  "locale": "fr-CA",
+  "voice_target": "qwen3_tts_french_lora_pilot",
+  "model_target": "qwen3_tts_pilot_15min_finetuned",
+  "status": "bench",
+  "design_principles": [
+    "Use cached filler first to cover retrieval/generation latency.",
+    "Use 0.65 speed for answer chunks: composed, premium, controlled.",
+    "Keep chunks short enough to feel conversational and avoid long generated monologues.",
+    "Do not over-explain. Scarlett guides one step at a time."
+  ],
+  "lines": [
+    {"id":"fr_live_flow_answer_001","type":"answer_chunk","cache_priority":"high","intent":"how it works intro","text":"Bien sûr. Le fonctionnement est assez simple."},
+    {"id":"fr_live_flow_answer_002","type":"answer_chunk","cache_priority":"high","intent":"profile first","text":"On commence par comprendre votre situation : est-ce que vous débutez en massage, est-ce que vous êtes déjà étudiant, ou est-ce que vous avez déjà une formation?"},
+    {"id":"fr_live_flow_answer_003","type":"answer_chunk","cache_priority":"high","intent":"route to path","text":"Ensuite, je vous dirige vers le bon niveau, le bon campus, les prochaines dates disponibles et l'étape d'inscription."},
+    {"id":"fr_live_flow_answer_004","type":"answer_chunk","cache_priority":"high","intent":"calm close","text":"On peut faire ça tranquillement, une étape à la fois."}
+  ]
+}

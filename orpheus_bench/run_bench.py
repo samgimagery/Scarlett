@@ -39,7 +39,9 @@ def readiness() -> dict:
         "prompt_count": len(load_prompts()),
         "approved_default_model": "legraphista/Orpheus:latest",
         "quality_reference_model": "legraphista/Orpheus:3b-ft-q8",
-        "next_step": "Use Q4 by default: run chunking_poc.py --scenario q4_turn_taking --voice leah, then build cached filler + playback queue."
+        "french_bench_model": "orpheus-french-q8:latest",
+        "french_gguf_path": "/Users/samg/Media/models/orpheus-gguf/Orpheus-3b-French-FT-Q8_0.gguf",
+        "next_step": "French path is active: listen-rate the Amelie/Marie Q8 review package, then decide usable/cached-only/pivot. Restore .env.q4-backup-20260504 before returning to English Q4 work."
     }
 
 

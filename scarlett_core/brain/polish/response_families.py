@@ -28,7 +28,14 @@ DEFAULT_FACTS: dict[str, str] = {
 }
 
 SAFE_POLISH_INTENTS = {
+    "greeting",
+    "greeting_allo",
+    "how_are_you",
+    "what_can_help",
     "aroma_course",
+    "continuing_ed_list",
+    "sport_course",
+    "specific_course",
     "price_n1",
     "price_n2",
     "price_n3",
@@ -39,12 +46,22 @@ SAFE_POLISH_INTENTS = {
     "too_expensive",
     "unsure_start",
     "human",
+    "julie",
+    "didnt_hear",
+    "repeat",
+    "unclear",
+    "signup_link",
+    "signup_direct",
+    "reserve_place",
 }
 
 DETERMINISTIC_POLISH_SOURCES = {
+    "local_identity_layer",
+    "local_service_confidence_layer",
     "local_pricing_layer",
     "local_continuing_ed_layer",
     "local_service_tile_layer",
+    "local_handoff_layer",
     "telegram_local",
 }
 
@@ -68,6 +85,51 @@ class ResponseFamily:
 
 
 FAMILIES: dict[str, ResponseFamily] = {
+    "greeting": ResponseFamily(
+        intent="greeting",
+        fact_slots=("name", "scope"),
+        notes="Opening moment. Keep short, calm, and receptionist-like.",
+        variants=(
+            ResponseVariant("concise", "Bonjour, je suis Scarlett.", "pure greeting"),
+            ResponseVariant("warm", "Bonjour, je suis Scarlett. Je peux vous aider avec les formations, les prix, les campus ou l’inscription à l’AMS.", "opening with scope"),
+            ResponseVariant("reassuring", "Bonjour, je suis Scarlett. On va y aller simplement.", "hesitant caller"),
+            ResponseVariant("guiding", "Bonjour, je suis Scarlett. Vous cherchez une formation, un prix, un campus ou une inscription?", "orient caller"),
+            ResponseVariant("repair", "Je reprends simplement: je suis Scarlett, la réception virtuelle de l’AMS.", "identity confusion"),
+        ),
+    ),
+    "greeting_allo": ResponseFamily(
+        intent="greeting_allo",
+        fact_slots=("name", "scope"),
+        variants=(
+            ResponseVariant("concise", "Allô, je suis Scarlett.", "phone-style greeting"),
+            ResponseVariant("warm", "Allô, je suis Scarlett. Je peux vous aider avec les formations, les prix, les campus ou l’inscription à l’AMS.", "phone-style opening with scope"),
+            ResponseVariant("reassuring", "Allô, je suis Scarlett. On va y aller simplement.", "hesitant caller"),
+            ResponseVariant("guiding", "Allô, je suis Scarlett. Vous cherchez une formation, un prix, un campus ou une inscription?", "orient caller"),
+            ResponseVariant("repair", "Je reprends simplement: je suis Scarlett, la réception virtuelle de l’AMS.", "identity confusion"),
+        ),
+    ),
+    "how_are_you": ResponseFamily(
+        intent="how_are_you",
+        fact_slots=("scope",),
+        variants=(
+            ResponseVariant("concise", "Oui, ça va très bien, merci.", "social check-in"),
+            ResponseVariant("warm", "Ça va très bien, merci. Quelle information AMS souhaitez-vous vérifier?", "social check-in then orient"),
+            ResponseVariant("reassuring", "Ça va très bien, merci. Prenons ça simplement.", "hesitant caller"),
+            ResponseVariant("guiding", "Ça va très bien, merci. Vous voulez parler formation, prix, campus ou inscription?", "orient caller"),
+            ResponseVariant("repair", "Oui, ça va très bien. Je reviens à votre question AMS.", "redirect"),
+        ),
+    ),
+    "what_can_help": ResponseFamily(
+        intent="what_can_help",
+        fact_slots=("scope",),
+        variants=(
+            ResponseVariant("concise", "Je peux vous aider avec les formations, les prix, les campus, l’inscription et le bon parcours.", "capability scope"),
+            ResponseVariant("warm", "Je peux vous aider à comparer les formations, comprendre les prix, choisir un campus ou préparer l’inscription.", "help menu"),
+            ResponseVariant("reassuring", "Je peux vous orienter étape par étape: formation, prix, campus, inscription, ou prochain bon choix.", "hesitant caller"),
+            ResponseVariant("guiding", "Dites-moi simplement si vous voulez parler formation, prix, campus ou inscription, et je vous guide.", "menu prompt"),
+            ResponseVariant("repair", "Je précise: je réponds aux questions pratiques sur l’AMS — formations, prix, campus et inscription.", "scope correction"),
+        ),
+    ),
     "aroma_course": ResponseFamily(
         intent="aroma_course",
         fact_slots=("course_name", "category", "next_step"),
@@ -78,6 +140,42 @@ FAMILIES: dict[str, ResponseFamily] = {
             ResponseVariant("reassuring", "Oui — et je vais la garder séparée du parcours praticien, pour ne pas mélanger les contenus.", "after correction or confusion"),
             ResponseVariant("guiding", "Oui. Vous voulez surtout connaître le contenu, le prix, ou la prochaine étape pour l’aromathérapie?", "next-step prompt"),
             ResponseVariant("repair", "Vous avez raison — on parle bien de l’aromathérapie, pas du parcours praticien. Je reprends sur ce cours-là.", "explicit correction"),
+        ),
+    ),
+    "continuing_ed_list": ResponseFamily(
+        intent="continuing_ed_list",
+        fact_slots=("theme", "lowest_price", "next_step"),
+        notes="Continuing-ed/course browsing opener. Always preserve grounded local_continuing_ed_layer lists as the body.",
+        variants=(
+            ResponseVariant("concise", "Oui — je peux vous orienter dans les cours à la carte sans mélanger ça avec le parcours complet.", "course browsing"),
+            ResponseVariant("warm", "Oui, bien sûr. Je vous regroupe les options à la carte par thème pour que ce soit plus facile à comparer.", "list or broad browsing"),
+            ResponseVariant("reassuring", "Oui — si le parcours complet semble trop lourd, on peut regarder les options plus courtes et plus abordables d’abord.", "lower-cost or try-first browsing"),
+            ResponseVariant("guiding", "Je peux vous guider par objectif: essayer d’abord, détente/spa, sport, douleur/mobilité, aromathérapie, ou pratique professionnelle.", "theme choice"),
+            ResponseVariant("repair", "Vous avez raison — on reste sur les cours à la carte, pas sur le parcours complet. Je reprends avec les options pertinentes.", "course/path confusion"),
+        ),
+    ),
+    "sport_course": ResponseFamily(
+        intent="sport_course",
+        fact_slots=("theme", "next_step"),
+        notes="Sport continuing-ed opener. Preserve concrete course list from local layer.",
+        variants=(
+            ResponseVariant("concise", "Oui — pour le sport, je regarde surtout récupération, mobilité et douleurs musculaires.", "sport interest"),
+            ResponseVariant("warm", "Oui, bien sûr. Pour un axe sportif, je vous regroupe les cours utiles autour du mouvement et de la récupération.", "normal sport browsing"),
+            ResponseVariant("reassuring", "Oui — on peut commencer par des cours ciblés avant de parler d’un parcours sportif plus complet.", "hesitant sport caller"),
+            ResponseVariant("guiding", "Vous cherchez plutôt performance sportive, douleur musculaire, taping, ou récupération?", "sport theme choice"),
+            ResponseVariant("repair", "Je reprends sur le sport précisément, pas sur tous les cours à la carte.", "correction"),
+        ),
+    ),
+    "specific_course": ResponseFamily(
+        intent="specific_course",
+        fact_slots=("course_name", "price", "duration"),
+        notes="Specific à-la-carte course opener. Preserve the exact deterministic course fact body.",
+        variants=(
+            ResponseVariant("concise", "Oui — je vous donne le repère précis pour ce cours.", "specific course lookup"),
+            ResponseVariant("warm", "Oui, je vous le situe simplement avec le prix et la durée connus.", "normal lookup"),
+            ResponseVariant("reassuring", "Oui — on reste sur ce cours précis, sans vous noyer dans tout le catalogue.", "caller wants narrow answer"),
+            ResponseVariant("guiding", "Je peux aussi vous montrer les cours voisins si vous comparez dans le même thème.", "next comparison"),
+            ResponseVariant("repair", "Je reprends sur ce cours-là seulement.", "correction"),
         ),
     ),
     "price_n1": ResponseFamily(
@@ -189,11 +287,95 @@ FAMILIES: dict[str, ResponseFamily] = {
         intent="human",
         fact_slots=("handoff_target", "prepared_context"),
         variants=(
-            ResponseVariant("concise", "Bien sûr — je peux vous aider à préparer la bonne demande pour une personne de l’AMS.", "handoff"),
-            ResponseVariant("warm", "Oui, bien sûr. Je peux d’abord noter le bon contexte pour que la personne vous réponde utilement.", "cooperative handoff"),
-            ResponseVariant("reassuring", "Aucun problème — si vous préférez parler à quelqu’un, je vais vous orienter proprement.", "caller wants human"),
-            ResponseVariant("guiding", "C’est pour une inscription, un prix, un campus, ou un dossier étudiant?", "triage before handoff"),
-            ResponseVariant("repair", "Compris — je ne vais pas insister. On prépare simplement le transfert vers une personne.", "bot resistance concern"),
+            ResponseVariant("concise", "Bien sûr — je peux vous orienter vers une personne de l’AMS sans prétendre transférer l’appel moi-même.", "generic human handoff"),
+            ResponseVariant("warm", "Oui, bien sûr. Je peux préparer le bon contexte pour que votre demande soit claire quand vous contactez l’AMS.", "cooperative handoff"),
+            ResponseVariant("reassuring", "Aucun problème — je vous donne le chemin officiel, sans prétendre qu’un rappel ou un transfert est déjà confirmé.", "callback or transfer safety"),
+            ResponseVariant("guiding", "Je peux vous aider à formuler la demande: inscription, prix, campus, dossier étudiant, ou rappel.", "handoff triage"),
+            ResponseVariant("repair", "Compris — je ne vais pas insister. Je vous oriente simplement vers le contact officiel de l’AMS.", "bot resistance concern"),
+        ),
+    ),
+    "julie": ResponseFamily(
+        intent="julie",
+        fact_slots=("person", "official_contact_path"),
+        notes="Julie/person-specific handoff. Never claim Scarlett transferred the caller or contacted Julie.",
+        variants=(
+            ResponseVariant("concise", "Oui — je peux vous orienter vers le bon contact pour joindre Julie, sans prétendre la transférer directement.", "Julie request"),
+            ResponseVariant("warm", "Bien sûr. Si vous cherchez Julie, je vous aide à formuler la demande proprement pour l’AMS.", "cooperative Julie handoff"),
+            ResponseVariant("reassuring", "Aucun souci — je vous donne le chemin officiel pour demander Julie ou la bonne personne, sans inventer un transfert.", "transfer safety"),
+            ResponseVariant("guiding", "Dans le message, indiquez simplement que vous souhaitez joindre Julie ou être dirigé vers la bonne personne.", "what to say"),
+            ResponseVariant("repair", "Je précise: je peux vous aider à demander Julie, mais je ne peux pas la joindre ou confirmer un transfert moi-même.", "fake-transfer correction"),
+        ),
+    ),
+    "didnt_hear": ResponseFamily(
+        intent="didnt_hear",
+        fact_slots=("previous_answer",),
+        notes="Voice/ASR repair. Keep short, interruptible, and local; never call RAG just to recover audio.",
+        variants=(
+            ResponseVariant("concise", "Pas de problème — je le reformule plus simplement.", "caller did not hear or understand"),
+            ResponseVariant("warm", "Bien sûr. Je vais le reprendre plus clairement, en une phrase.", "gentle repair"),
+            ResponseVariant("reassuring", "Aucun souci — ça arrive. Je reprends calmement.", "audio or ASR friction"),
+            ResponseVariant("guiding", "Je peux reprendre la dernière réponse, ou préciser seulement la partie qui n’était pas claire.", "offer repair branch"),
+            ResponseVariant("repair", "Je reprends depuis le début, plus simplement.", "explicit repair request"),
+        ),
+    ),
+    "repeat": ResponseFamily(
+        intent="repeat",
+        fact_slots=("previous_answer",),
+        notes="Repeat request. Do not add new facts; signal a clean repeat.",
+        variants=(
+            ResponseVariant("concise", "D’accord. Je vous le redis simplement.", "direct repeat"),
+            ResponseVariant("warm", "Oui, bien sûr. Je reprends la dernière réponse plus tranquillement.", "gentle repeat"),
+            ResponseVariant("reassuring", "Aucun problème — je peux répéter sans aller plus vite.", "caller missed it"),
+            ResponseVariant("guiding", "Je peux répéter tout, ou seulement le prix, le programme, ou la prochaine étape.", "branch repeat"),
+            ResponseVariant("repair", "Je reprends, plus court et plus clair.", "repeat after confusion"),
+        ),
+    ),
+    "unclear": ResponseFamily(
+        intent="unclear",
+        fact_slots=("clarification_target",),
+        notes="Clarification request. Ask a tiny targeted question; do not over-explain.",
+        variants=(
+            ResponseVariant("concise", "Pas de souci — quelle partie voulez-vous que je précise?", "direct clarification"),
+            ResponseVariant("warm", "Bien sûr. Dites-moi juste la partie floue, et je la reprends clairement.", "caller confused"),
+            ResponseVariant("reassuring", "Aucun souci — on peut y aller plus simplement.", "overwhelmed caller"),
+            ResponseVariant("guiding", "C’est le prix, le choix du programme, le campus, ou l’inscription qui n’est pas clair?", "targeted clarification"),
+            ResponseVariant("repair", "Je simplifie: dites-moi le point qui bloque, et je reprends à partir de là.", "confusion repair"),
+        ),
+    ),
+    "signup_link": ResponseFamily(
+        intent="signup_link",
+        fact_slots=("official_signup_path", "programme_context"),
+        notes="Action request. Guide to the official AMS signup path; never imply Scarlett sent a link or submitted anything.",
+        variants=(
+            ResponseVariant("concise", "Oui — je peux vous guider vers le bon lien d’inscription officiel, sans rien soumettre à votre place.", "direct link request"),
+            ResponseVariant("warm", "Bien sûr. Je vais vous orienter vers le lien officiel, et vous gardez le contrôle de l’inscription.", "normal action request"),
+            ResponseVariant("reassuring", "Oui — on peut avancer prudemment. Je vous indique le bon endroit officiel, sans confirmer d’inscription pour vous.", "caller ready but needs safety"),
+            ResponseVariant("guiding", "Avant le lien, je veux juste confirmer: c’est pour le Niveau 1, un autre niveau, ou un cours à la carte?", "needs programme context"),
+            ResponseVariant("repair", "Je précise: je peux vous diriger vers le lien officiel, mais je ne peux pas envoyer ou remplir le formulaire à votre place.", "fake-action correction"),
+        ),
+    ),
+    "signup_direct": ResponseFamily(
+        intent="signup_direct",
+        fact_slots=("programme_context", "official_next_step"),
+        notes="Direct signup intent. Be useful but honest: no fake registration, no fake booking.",
+        variants=(
+            ResponseVariant("concise", "Parfait — je peux vous guider vers la bonne étape d’inscription officielle, mais je ne peux pas vous inscrire automatiquement.", "ready to sign up"),
+            ResponseVariant("warm", "Très bien. On va le faire proprement: je confirme d’abord le bon parcours, puis je vous dirige vers l’étape officielle.", "normal signup"),
+            ResponseVariant("reassuring", "Oui — et je veux éviter de vous envoyer au mauvais endroit. Je confirme le parcours avant l’inscription.", "caller needs guidance"),
+            ResponseVariant("guiding", "C’est pour le Niveau 1, un autre niveau, ou un cours à la carte?", "needs programme context"),
+            ResponseVariant("repair", "Je précise: je peux vous guider vers l’inscription, mais je ne peux pas la compléter ou la confirmer à votre place.", "fake-action correction"),
+        ),
+    ),
+    "reserve_place": ResponseFamily(
+        intent="reserve_place",
+        fact_slots=("programme_context", "official_reservation_path"),
+        notes="Reservation intent. Never claim a seat is held; guide to official contact/signup path.",
+        variants=(
+            ResponseVariant("concise", "Je peux vous guider vers la bonne étape pour réserver officiellement, mais je ne peux pas bloquer une place moi-même.", "reserve ask"),
+            ResponseVariant("warm", "Parfait. Je peux vous aider à choisir le bon chemin officiel pour demander une place, sans prétendre qu’elle est déjà réservée.", "normal reserve ask"),
+            ResponseVariant("reassuring", "Oui — je peux vous guider, mais la place doit être confirmée par l’AMS.", "avoid false confirmation"),
+            ResponseVariant("guiding", "Pour quelle formation voulez-vous réserver: Niveau 1, Niveau 2, Niveau 3, ou un cours à la carte?", "needs programme context"),
+            ResponseVariant("repair", "Je reprends clairement: je peux orienter la demande de réservation, mais je ne peux pas réserver la place à votre place.", "fake-reservation correction"),
         ),
     ),
 }
@@ -215,9 +397,43 @@ def choose_variant(intent: str, scope: str = "warm") -> ResponseVariant | None:
 
 def choose_scope(*, intent: str, question: str = "", answer: str = "", source_layer: str | None = None) -> str:
     q = (question or "").lower()
+    if intent in {"greeting", "greeting_allo"}:
+        return "concise" if (question or "").strip().lower().rstrip("?!.,") in {"bonjour", "salut", "allo", "allô"} else "warm"
+    if intent == "how_are_you":
+        return "warm"
+    if intent == "what_can_help":
+        return "concise"
+    if intent in {"didnt_hear", "repeat"}:
+        return "concise"
+    if intent == "unclear":
+        return "guiding" if any(marker in q for marker in ("quoi", "hein", "pas clair", "comprends pas", "comprend pas")) else "concise"
+    if intent in {"signup_link", "signup_direct", "reserve_place"}:
+        if any(marker in q for marker in ("lien", "formulaire", "page")):
+            return "concise"
+        if any(marker in q for marker in ("reserve", "réserve", "place", "siege", "siège", "spot")):
+            return "reassuring" if intent == "reserve_place" else "guiding"
+        return "guiding"
     if intent not in {"unsure_start", "too_expensive"} and any(marker in q for marker in ("pas ", "non ", "plutot", "plutôt", "corrige", "je veux dire", "pas practicien", "pas praticien")):
         return "repair"
-    if intent in {"too_expensive", "human"}:
+    if intent == "julie":
+        return "concise" if "julie" in q else "reassuring"
+    if intent == "human":
+        if any(marker in q for marker in ("rappel", "rappeler", "rendez", "appel", "booker", "ceduler", "céduler")):
+            return "reassuring"
+        if any(marker in q for marker in ("courriel", "email", "information", "documentation", "brochure", "campus")):
+            return "warm"
+        return "concise"
+    if intent == "continuing_ed_list":
+        if any(marker in q for marker in ("moins cher", "moins chers", "abordable", "budget", "trop cher", "juste essayer", "formation courte", "cours court", "atelier", "sans m engager", "sans m'engager")):
+            return "reassuring"
+        if any(marker in q for marker in ("quel", "quels", "liste", "options", "offrez", "programme")):
+            return "warm"
+        return "guiding"
+    if intent == "sport_course":
+        return "concise" if any(marker in q for marker in ("sport", "sportif", "massage sportif")) else "warm"
+    if intent == "specific_course":
+        return "concise"
+    if intent == "too_expensive":
         return "reassuring"
     if intent in {"total_n1_n2", "total_all"} and any(marker in q for marker in ("total", "ensemble", "complet", "tout")):
         return "concise"
@@ -246,7 +462,7 @@ def render_variant(intent: str, scope: str = "warm", facts: dict[str, Any] | Non
 def should_apply_polish(*, intent: str | None, source_layer: str | None, model: str | None, top_score: float = 0) -> bool:
     if intent not in SAFE_POLISH_INTENTS:
         return False
-    if source_layer == "local_continuing_ed_layer" and intent not in {"aroma_course"}:
+    if source_layer == "local_continuing_ed_layer" and intent not in {"aroma_course", "continuing_ed_list", "sport_course", "specific_course"}:
         return False
     if source_layer in DETERMINISTIC_POLISH_SOURCES:
         return True
@@ -279,20 +495,18 @@ def polish_answer(
         return answer, None
     if intent == "too_expensive" and source_layer in DETERMINISTIC_POLISH_SOURCES and answer.strip():
         return answer, None
-    if source_layer in DETERMINISTIC_POLISH_SOURCES and answer.strip() and (
+    if source_layer in DETERMINISTIC_POLISH_SOURCES and source_layer != "local_handoff_layer" and answer.strip() and (
         "1 800 475-1964" in answer or "academiedemassage.com/contact" in answer
     ):
-        return answer, None
-    if intent in {"human", "julie"} and source_layer == "local_handoff_layer" and answer.strip():
         return answer, None
     scope = choose_scope(intent=intent or "", question=question, answer=answer, source_layer=source_layer)
     rendered = render_variant(intent or "", scope=scope, facts=facts)
     if not rendered:
         return answer, None
     mode = "replace"
-    if source_layer not in DETERMINISTIC_POLISH_SOURCES and answer.strip():
-        # Generated/RAG answers keep their grounded details; the family line acts
-        # as a controlled service-performance opener.
+    if (source_layer not in DETERMINISTIC_POLISH_SOURCES or source_layer in {"local_handoff_layer", "local_continuing_ed_layer"}) and answer.strip():
+        # Generated/RAG, handoff, and continuing-ed answers keep their grounded
+        # details; the family line acts as a controlled service-performance opener.
         mode = "prefix"
         if rendered.lower() not in answer.lower():
             rendered = f"{rendered}\n\n{answer}"

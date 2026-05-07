@@ -121,7 +121,7 @@ def rule_scores(norm: str, tokens: set[str]) -> dict[str, tuple[float, str]]:
         add("identity", 0.97, "rule:identity_question")
     if _has_any(norm, "comment vas", "tu vas comment", "tout va bien", "ca roule", "ca va"):
         add("how_are_you", 0.97, "rule:social_checkin")
-    if _has_any(norm, "quels sujets", "que peux tu faire", "sur quoi peux tu repondre", "tes capacites", "dans quoi peux tu", "m aider avec quoi", "maider avec quoi", "peuxutu maider", "peux tu m aider", "can you help", "what can you help"):
+    if _has_any(norm, "quels sujets", "que peux tu faire", "qu est ce que tu peux faire", "quest ce que tu peux faire", "tu peux faire quoi", "sur quoi peux tu repondre", "tes capacites", "dans quoi peux tu", "m aider avec quoi", "maider avec quoi", "peuxutu maider", "peux tu m aider", "can you help", "what can you help"):
         add("what_can_help", 0.97, "rule:capability_scope")
 
     if _has_any(norm, "processus", "ca se passe comment", "comment on fait", "decris moi les etapes", "comment ca marche", "fonctionne comment"):
@@ -172,19 +172,19 @@ def rule_scores(norm: str, tokens: set[str]) -> dict[str, tuple[float, str]]:
     if _has_any(norm, "info sur le contenu", "information sur le contenu", "contenu du cours", "dans le cours", "qu est ce qu on apprend", "quest ce quon apprend", "plus d info"):
         add("continuing_ed_list", 0.965, "rule:course_content_followup")
 
-    if _has_any(norm, "regions", "suivre les cours", "emplacements", "succursales", "combien de campus"):
+    if _has_any(norm, "regions êtes", "regions etes", "dans quelles regions", "campus en region", "campus en régions", "suivre les cours", "emplacements", "succursales", "combien de campus"):
         add("campus_list", 0.97, "rule:campus_list")
     if (_has_any(norm, "laval", "rive nord", "plus proche", "pres de chez moi") and not _has_any(norm, "hors de montreal")):
         add("nearest_campus", 0.98, "rule:nearest_campus")
-    if _has_any(norm, "adresse", "exactement a montreal", "campus mtl", "campus montreal est ou", "localisation"):
+    if _has_any(norm, "adresse", "exactement a montreal", "campus mtl", "campus montreal est ou", "localisation", "campus de brossard", "campus brossard", "campus de laval", "campus de quebec"):
         add("campus_address", 0.98, "rule:campus_address")
-    if _has_any(norm, "abitibi", "sherbrooke", "loin en region", "pas proche", "hors de montreal"):
+    if _has_any(norm, "abitibi", "rouyn", "rouyn noranda", "loin en region", "pas proche", "hors de montreal"):
         add("city_unknown", 0.97, "rule:unknown_city")
-    if _has_any(norm, "proceder a l inscription", "on peut m inscrire", "commencer mon inscription", "m enregistre", "faire ma demande") or norm.startswith("je veux m inscrire"):
+    if _has_any(norm, "proceder a l inscription", "on peut m inscrire", "commencer mon inscription", "m enregistre", "faire ma demande", "inscris moi", "m inscrire maintenant", "pret a m inscrire", "prêt à m inscrire") or norm.startswith("je veux m inscrire"):
         add("signup_direct", 0.98, "rule:signup_direct")
-    if _has_any(norm, "envoyer la page", "besoin du formulaire", "bouton", "page web", "lien formulaire", "lien d inscription", "lien inscription", "envoie moi le lien", "envoie le lien", "envoye moi le lien"):
+    if _has_any(norm, "envoyer la page", "besoin du formulaire", "bouton", "page web", "lien formulaire", "lien d inscription", "lien inscription", "envoie moi le lien", "envoie le lien", "envoye moi le lien", "page inscription", "page d inscription"):
         add("signup_link", 0.995, "rule:signup_link")
-    if _has_any(norm, "garder mon siege", "bloquer une place", "mon nom sur la liste", "reserver", "spot", "assurer ma place"):
+    if _has_any(norm, "garder mon siege", "garde moi une place", "garder une place", "bloquer une place", "bloque moi une place", "mon nom sur la liste", "reserver", "reserve", "réserve", "spot", "assurer ma place", "mettre mon nom"):
         add("reserve_place", 0.98, "rule:reserve_place")
     if norm in {"correct", "vas y", "ok parfait"} or _has_any(norm, "oui fais", "oui exactement"):
         add("oui_after_offer", 0.97, "rule:affirmation")
@@ -215,9 +215,9 @@ def rule_scores(norm: str, tokens: set[str]) -> dict[str, tuple[float, str]]:
 
     if _has_any(norm, "redis", "recommencer", "repete", "reentendre", "reprends"):
         add("repeat", 0.98, "rule:repeat")
-    if _has_any(norm, "pas sur de comprendre", "confus", "pas certain", "clarifier", "perdu dans ta reponse"):
+    if _has_any(norm, "pas sur de comprendre", "confus", "pas certain", "clarifier", "perdu dans ta reponse", "hein quoi", "pas clair", "comprends pas", "comprend pas") or (tokens and tokens <= {"hein", "quoi"}):
         add("unclear", 0.98, "rule:unclear")
-    if _has_any(norm, "son a coupe", "perdu l audio", "pas saisi la fin", "pas entendu", "entendu la fin", "repete la fin", "répète la fin", "reformule", "bugge", "rien entendu"):
+    if _has_any(norm, "son a coupe", "perdu l audio", "pas saisi la fin", "pas entendu", "entendu la fin", "repete la fin", "répète la fin", "reformule", "bugge", "rien entendu", "pas compris", "j ai pas compris", "jai pas compris", "je n ai pas compris"):
         add("didnt_hear", 0.98, "rule:didnt_hear")
     if _has_any(norm, "attends", "arrete", "pause", "laisse moi finir", "coupe ca"):
         add("interrupt", 0.98, "rule:interrupt")
@@ -235,8 +235,8 @@ def rule_scores(norm: str, tokens: set[str]) -> dict[str, tuple[float, str]]:
         add("human", 0.985, "rule:callback_or_appointment_handoff")
     if _has_any(norm, "envoyer de l information", "envoyer des informations", "recevoir de l information", "info par courriel", "information par courriel", "envoyer par courriel", "m envoyer les infos", "documentation", "brochure"):
         add("human", 0.965, "rule:send_info_handoff")
-    if _has_any(norm, "contact campus", "joindre le campus", "appeler le campus", "numero du campus", "numéro du campus", "telephone du campus", "téléphone du campus", "parler au campus"):
-        add("human", 0.965, "rule:campus_contact_handoff")
+    if _has_any(norm, "contact campus", "contact pour le campus", "joindre le campus", "appeler le campus", "numero du campus", "numéro du campus", "telephone du campus", "téléphone du campus", "parler au campus"):
+        add("human", 0.985, "rule:campus_contact_handoff")
     if _has_any(norm, "autre chose avant", "differente la derniere fois", "autre systeme", "contradictoire", "ancien assistant", "pas pareil"):
         add("old_bot", 0.98, "rule:contradiction_old_bot")
 

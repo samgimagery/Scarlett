@@ -1,0 +1,25 @@
+{
+  "name": "Scarlett French Canadian Production Feel Bank",
+  "version": "2026-05-04-fr-ca-production-feel-v1",
+  "req": "REQ-108",
+  "locale": "fr-CA",
+  "voice_target": "amelie",
+  "model_target": "orpheus-french-q8:latest",
+  "status": "bench",
+  "design_principles": [
+    "Use real AMS receptionist turns, not isolated micro-phrases only.",
+    "Keep tone calm, velvet, confident, and service-oriented.",
+    "Avoid jokes, emotion tags, and theatrical delivery.",
+    "Test both sentence-length chunks and full conversational turns to separate model choppiness from stitch artifacts."
+  ],
+  "lines": [
+    {"id":"fr_prod_greeting_001","type":"production_turn","cache_priority":"medium","intent":"opening greeting","text":"Bonjour, vous êtes bien avec l'Académie de massage scientifique. Je peux vous aider avec les programmes, les prix, les horaires ou l'inscription."},
+    {"id":"fr_prod_flow_001","type":"production_turn","cache_priority":"medium","intent":"how it works","text":"Bien sûr. Le fonctionnement est assez simple. On commence par comprendre votre situation : est-ce que vous débutez en massage, est-ce que vous êtes déjà étudiant, ou est-ce que vous avez déjà une formation? Ensuite, je vous dirige vers le bon niveau, le bon campus, les dates disponibles et l'étape d'inscription."},
+    {"id":"fr_prod_price_001","type":"production_turn","cache_priority":"medium","intent":"price explanation","text":"Pour le Niveau 1 en massothérapie, le prix est de quatre mille neuf cent quatre-vingt-quinze dollars. C'est le point de départ habituel si vous commencez une nouvelle formation en massage."},
+    {"id":"fr_prod_signup_001","type":"production_turn","cache_priority":"medium","intent":"signup pre-check","text":"Parfait. Avant de vous envoyer le formulaire, je veux juste vérifier une chose : est-ce que vous voulez commencer une formation complète en massothérapie, ou vous inscrire à un cours précis?"},
+    {"id":"fr_prod_student_001","type":"production_turn","cache_priority":"medium","intent":"current student support","text":"D'accord. Si vous êtes déjà étudiant avec nous, je peux vous aider avec votre horaire, vos cours, votre matériel ou la prochaine étape de votre formation."},
+    {"id":"fr_prod_lookup_001","type":"production_turn","cache_priority":"medium","intent":"lookup transition","text":"Je regarde ça pour vous. Je vais commencer par le programme, puis je pourrai vérifier le campus et les prochaines dates si vous voulez."},
+    {"id":"fr_prod_repair_001","type":"production_turn","cache_priority":"medium","intent":"repair without guessing","text":"Je ne veux pas deviner. Pouvez-vous me préciser si vous parlez du Niveau 1, du Niveau 2, ou d'une formation continue?"},
+    {"id":"fr_prod_close_001","type":"production_turn","cache_priority":"medium","intent":"soft close","text":"Excellent. La prochaine étape logique, c'est de choisir le campus et de confirmer le bon parcours. Après ça, l'inscription devient beaucoup plus simple."}
+  ]
+}

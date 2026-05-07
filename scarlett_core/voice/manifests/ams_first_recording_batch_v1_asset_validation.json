@@ -1,0 +1,320 @@
+{
+  "ok": true,
+  "total": 28,
+  "failures": [],
+  "rows": [
+    {
+      "case_id": "ams-int-001",
+      "intent": "greeting",
+      "asset_id": "ams/ams-int-001-greeting.wav",
+      "exists": true,
+      "bytes": 98016,
+      "text_fr_ca": "Bonjour, je suis Scarlett.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 2041
+    },
+    {
+      "case_id": "ams-int-002",
+      "intent": "greeting_allo",
+      "asset_id": "ams/ams-int-002-greeting_allo.wav",
+      "exists": true,
+      "bytes": 78284,
+      "text_fr_ca": "Allô, je suis Scarlett.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 1630
+    },
+    {
+      "case_id": "ams-int-004",
+      "intent": "how_are_you",
+      "asset_id": "ams/ams-int-004-how_are_you.wav",
+      "exists": true,
+      "bytes": 185324,
+      "text_fr_ca": "Ça va très bien, merci. Quelle information AMS souhaitez-vous vérifier?",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 3860
+    },
+    {
+      "case_id": "ams-int-050",
+      "intent": "what_can_help",
+      "asset_id": "ams/ams-int-050-what_can_help.wav",
+      "exists": true,
+      "bytes": 256844,
+      "text_fr_ca": "Je peux vous aider avec les formations, les prix, les campus, l’inscription et le bon parcours.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 5350
+    },
+    {
+      "case_id": "ams-int-036",
+      "intent": "repeat",
+      "asset_id": "ams/ams-int-036-repeat.wav",
+      "exists": true,
+      "bytes": 116684,
+      "text_fr_ca": "D’accord. Je vous le redis simplement.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 2430
+    },
+    {
+      "case_id": "ams-int-037",
+      "intent": "unclear",
+      "asset_id": "ams/ams-int-037-unclear.wav",
+      "exists": true,
+      "bytes": 264912,
+      "text_fr_ca": "C’est le prix, le choix du programme, le campus, ou l’inscription qui n’est pas clair?",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 5518
+    },
+    {
+      "case_id": "ams-int-038",
+      "intent": "didnt_hear",
+      "asset_id": "ams/ams-int-038-didnt_hear.wav",
+      "exists": true,
+      "bytes": 134444,
+      "text_fr_ca": "Pas de problème — je le reformule plus simplement.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 2800
+    },
+    {
+      "case_id": "ams-int-039",
+      "intent": "stt_failure",
+      "asset_id": "ams/ams-int-039-stt_failure.wav",
+      "exists": true,
+      "bytes": 149324,
+      "text_fr_ca": "Désolée, je n’ai pas bien entendu. Pouvez-vous répéter?",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 3110
+    },
+    {
+      "case_id": "ams-int-023",
+      "intent": "signup_direct",
+      "asset_id": "ams/ams-int-023-signup_direct.wav",
+      "exists": true,
+      "bytes": 188204,
+      "text_fr_ca": "C’est pour le Niveau 1, un autre niveau, ou un cours à la carte?",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 3920
+    },
+    {
+      "case_id": "ams-int-024",
+      "intent": "signup_link",
+      "asset_id": "ams/ams-int-024-signup_link.wav",
+      "exists": true,
+      "bytes": 252524,
+      "text_fr_ca": "Oui — je peux vous guider vers le bon lien d’inscription officiel, sans rien soumettre à votre place.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 5260
+    },
+    {
+      "case_id": "ams-int-025",
+      "intent": "reserve_place",
+      "asset_id": "ams/ams-int-025-reserve_place.wav",
+      "exists": true,
+      "bytes": 195410,
+      "text_fr_ca": "Oui — je peux vous guider, mais la place doit être confirmée par l’AMS.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 4070
+    },
+    {
+      "case_id": "ams-int-047",
+      "intent": "julie",
+      "asset_id": "ams/ams-int-047-julie.wav",
+      "exists": true,
+      "bytes": 282284,
+      "text_fr_ca": "Oui — je peux vous orienter vers le bon contact pour joindre Julie, sans prétendre la transférer directement.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 5880
+    },
+    {
+      "case_id": "ams-int-048",
+      "intent": "human",
+      "asset_id": "ams/ams-int-048-human.wav",
+      "exists": true,
+      "bytes": 296518,
+      "text_fr_ca": "Bien sûr — je peux vous orienter vers une personne de l’AMS sans prétendre transférer l’appel moi-même.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 6177
+    },
+    {
+      "case_id": "ams-int-011",
+      "intent": "price_n1",
+      "asset_id": "ams/ams-int-011-price_n1.wav",
+      "exists": true,
+      "bytes": 246284,
+      "text_fr_ca": "Le Niveau 1 est à 4 995 $, ou à partir de 104 $ par semaine.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 5130
+    },
+    {
+      "case_id": "ams-int-012",
+      "intent": "price_n2",
+      "asset_id": "ams/ams-int-012-price_n2.wav",
+      "exists": true,
+      "bytes": 240524,
+      "text_fr_ca": "Le Niveau 2 est à 7 345 $, ou à partir de 111 $ par semaine.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 5010
+    },
+    {
+      "case_id": "ams-int-013",
+      "intent": "price_n3",
+      "asset_id": "ams/ams-int-013-price_n3.wav",
+      "exists": true,
+      "bytes": 256844,
+      "text_fr_ca": "Le Niveau 3 est à 3 595 $, ou à partir de 97 $ par semaine.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 5350
+    },
+    {
+      "case_id": "ams-int-014",
+      "intent": "total_n1_n2",
+      "asset_id": "ams/ams-int-014-total_n1_n2.wav",
+      "exists": true,
+      "bytes": 266924,
+      "text_fr_ca": "Niveau 1 plus Niveau 2, le total est 12 340 $.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 5560
+    },
+    {
+      "case_id": "ams-int-015",
+      "intent": "total_all",
+      "asset_id": "ams/ams-int-015-total_all.wav",
+      "exists": true,
+      "bytes": 178124,
+      "text_fr_ca": "Les trois niveaux ensemble totalisent 15 935 $.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 3710
+    },
+    {
+      "case_id": "ams-int-016",
+      "intent": "financing",
+      "asset_id": "ams/ams-int-016-financing.wav",
+      "exists": true,
+      "bytes": 176684,
+      "text_fr_ca": "Oui, il y a des options de paiement et du financement peut être disponible.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 3680
+    },
+    {
+      "case_id": "ams-int-017",
+      "intent": "weekly",
+      "asset_id": "ams/ams-int-017-weekly.wav",
+      "exists": true,
+      "bytes": 181154,
+      "text_fr_ca": "Oui — ça dépend du niveau, je vous donne les repères.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 3773
+    },
+    {
+      "case_id": "ams-int-018",
+      "intent": "too_expensive",
+      "asset_id": "ams/ams-int-018-too_expensive.wav",
+      "exists": true,
+      "bytes": 196152,
+      "text_fr_ca": "Je comprends — je peux vous montrer les options de paiement sans vous pousser.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 4086
+    },
+    {
+      "case_id": "ams-int-027",
+      "intent": "continuing_ed_list",
+      "asset_id": "ams/ams-int-027-continuing_ed_list.wav",
+      "exists": true,
+      "bytes": 233324,
+      "text_fr_ca": "Oui, bien sûr. Je vous regroupe les options à la carte par thème pour que ce soit plus facile à comparer.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 4860
+    },
+    {
+      "case_id": "ams-int-028",
+      "intent": "specific_course",
+      "asset_id": "ams/ams-int-028-specific_course.wav",
+      "exists": true,
+      "bytes": 127724,
+      "text_fr_ca": "Oui — je vous donne le repère précis pour ce cours.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 2660
+    },
+    {
+      "case_id": "ams-int-029",
+      "intent": "sport_course",
+      "asset_id": "ams/ams-int-029-sport_course.wav",
+      "exists": true,
+      "bytes": 276010,
+      "text_fr_ca": "Oui — pour le sport, je regarde surtout récupération, mobilité et douleurs musculaires.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 5749
+    },
+    {
+      "case_id": "ams-int-030",
+      "intent": "aroma_course",
+      "asset_id": "ams/ams-int-030-aroma_course.wav",
+      "exists": true,
+      "bytes": 168524,
+      "text_fr_ca": "Oui — l’AMS offre l’aromathérapie comme formation à la carte.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 3510
+    },
+    {
+      "case_id": "ams-int-019",
+      "intent": "campus_list",
+      "asset_id": "ams/ams-int-019-campus_list.wav",
+      "exists": true,
+      "bytes": 84044,
+      "text_fr_ca": "L’école a huit campus au Québec.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 1750
+    },
+    {
+      "case_id": "ams-int-020",
+      "intent": "nearest_campus",
+      "asset_id": "ams/ams-int-020-nearest_campus.wav",
+      "exists": true,
+      "bytes": 226124,
+      "text_fr_ca": "Je peux vous situer le campus probablement le plus proche, avec une estimation locale.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 4710
+    },
+    {
+      "case_id": "ams-int-021",
+      "intent": "campus_address",
+      "asset_id": "ams/ams-int-021-campus_address.wav",
+      "exists": true,
+      "bytes": 122924,
+      "text_fr_ca": "Oui — je vous donne l’adresse du campus demandé.",
+      "channels": 1,
+      "rate": 24000,
+      "duration_ms": 2560
+    }
+  ],
+  "duration_ms": {
+    "min": 1630,
+    "max": 6177,
+    "avg": 4077
+  }
+}

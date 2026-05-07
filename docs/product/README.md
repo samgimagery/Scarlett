@@ -9,9 +9,10 @@ Product split:
 
 The sales model is done-for-you: prepare remotely, demo live, launch and tune as a managed system.
 
-- [Scarlett Core Status — 2026-05-07](Scarlett-Core-Status-2026-05-07.md) — current live AMS hardening checkpoint: router, pricing, continuing-ed, handoff, gates, and next priority.
+- [Scarlett Core Status — 2026-05-07](Scarlett-Core-Status-2026-05-07.md) — live AMS hardening checkpoint: router, pricing, continuing-ed, handoff, service tiles, voice assets, gates, and next priority.
+- [Scarlett Live Voice Checkpoint — 2026-05-07](Scarlett-Live-Voice-Checkpoint-2026-05-07.md) — cached-first browser voice state: approved AMS WAV assets, live playback wiring, gates, and iPhone/browser test plan.
 
-Voice is part of Scarlett Core, not a one-off demo. The locked live-voice architecture is cached-first: use a mega bank of situation-specific prefillers to gain time, then deliver short grounded answer chunks with composed pacing.
+Voice is part of Scarlett Core, not a one-off demo. The locked live-voice architecture is cached-first: use a bank of situation-specific service tiles to create immediate first audio, then deliver short grounded answer chunks with composed pacing.
 
 - [Scarlett Brain v1](Scarlett-Brain-v1.md) — product boundary for sources → vault → facts → retrieval → answer → review.
 

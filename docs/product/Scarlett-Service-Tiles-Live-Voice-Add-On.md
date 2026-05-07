@@ -85,6 +85,14 @@ Final harness result:
 - 0 failed
 - 0 partial
 
+REQ-158 through REQ-160 moved the layer from metadata to live audio:
+
+- `28/28` AMS first-audio WAV assets generated from `scarlett_core/voice/manifests/ams_first_recording_batch_v1.json`
+- listening/Whisper review completed and weak lines regenerated
+- final asset duration range: `1.63s–6.18s`, average `4.08s`
+- active browser voice path now plays cached service-tile WAVs before generated chunks
+- cached-only answers skip generated TTS to prevent duplicate playback
+
 ## Open finding
 
 The hard part is not canned audio. The hard part is deciding:
@@ -98,15 +106,15 @@ The hard part is not canned audio. The hard part is deciding:
 
 That is the product moat.
 
-## Next implementation step
+## Current implementation step
 
-Create the audio asset lifecycle:
+The audio asset lifecycle now exists in practice:
 
 1. candidate
 2. scripted
 3. recorded/generated
-4. verified
-5. production
-6. refined
+4. reviewed with listening/Whisper artifacts
+5. verified by asset validation and live smoke tests
+6. production-ready for browser/iPhone review
 
-Then wire the live voice shell to play `voice.asset_id` immediately when `/ask` returns tile metadata.
+Next implementation work is not more scripting. It is the real device pass: first-audio timing, duplicate playback checks, awkward take review, and interruption/barge-in behaviour. After that, either regenerate weak lines or harden timing and barge-in.

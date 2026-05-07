@@ -1,0 +1,52 @@
+{
+  "name": "Scarlett FR-CA Micro Exchange Bank REQ-112",
+  "version": "2026-05-04-micro-v1",
+  "req": "REQ-112",
+  "locale": "fr-CA",
+  "purpose": "Trial very short exchange/filler timing in Mind Vault AMS voice sandbox",
+  "lines": [
+    {"id":"micro_ack_001","type":"ack","text":"Oui."},
+    {"id":"micro_ack_002","type":"ack","text":"D'accord."},
+    {"id":"micro_ack_003","type":"ack","text":"Parfait."},
+    {"id":"micro_ack_004","type":"ack","text":"Bien sûr."},
+    {"id":"micro_ack_005","type":"ack","text":"Exactement."},
+    {"id":"micro_ack_006","type":"ack","text":"Je comprends."},
+    {"id":"micro_ack_007","type":"ack","text":"Très bien."},
+    {"id":"micro_ack_008","type":"ack","text":"C'est noté."},
+
+    {"id":"micro_hold_001","type":"hold","text":"Un instant."},
+    {"id":"micro_hold_002","type":"hold","text":"Je regarde."},
+    {"id":"micro_hold_003","type":"hold","text":"Je vérifie."},
+    {"id":"micro_hold_004","type":"hold","text":"Deux secondes."},
+    {"id":"micro_hold_005","type":"hold","text":"Je consulte ça."},
+    {"id":"micro_hold_006","type":"hold","text":"Je regarde avec vous."},
+    {"id":"micro_hold_007","type":"hold","text":"Je vérifie le dossier."},
+    {"id":"micro_hold_008","type":"hold","text":"Je vous trouve ça."},
+
+    {"id":"micro_softener_001","type":"softener","text":"Alors."},
+    {"id":"micro_softener_002","type":"softener","text":"Voyons."},
+    {"id":"micro_softener_003","type":"softener","text":"Juste un moment."},
+    {"id":"micro_softener_004","type":"softener","text":"Très bonne question."},
+    {"id":"micro_softener_005","type":"softener","text":"Je veux confirmer."},
+    {"id":"micro_softener_006","type":"softener","text":"Je préfère vérifier."},
+
+    {"id":"micro_repair_001","type":"repair","text":"Pardon?"},
+    {"id":"micro_repair_002","type":"repair","text":"Vous pouvez répéter?"},
+    {"id":"micro_repair_003","type":"repair","text":"Je n'ai pas bien entendu."},
+    {"id":"micro_repair_004","type":"repair","text":"La dernière partie, s'il vous plaît."},
+    {"id":"micro_repair_005","type":"repair","text":"Je veux bien comprendre."},
+    {"id":"micro_repair_006","type":"repair","text":"Je ne veux pas deviner."},
+
+    {"id":"micro_bridge_001","type":"bridge","text":"La réponse courte: oui."},
+    {"id":"micro_bridge_002","type":"bridge","text":"Ça dépend du campus."},
+    {"id":"micro_bridge_003","type":"bridge","text":"Je peux vous expliquer."},
+    {"id":"micro_bridge_004","type":"bridge","text":"On peut commencer là."},
+    {"id":"micro_bridge_005","type":"bridge","text":"La prochaine étape est simple."},
+    {"id":"micro_bridge_006","type":"bridge","text":"Je vais résumer."},
+
+    {"id":"micro_close_001","type":"close","text":"Avec plaisir."},
+    {"id":"micro_close_002","type":"close","text":"Merci."},
+    {"id":"micro_close_003","type":"close","text":"Bonne journée."},
+    {"id":"micro_close_004","type":"close","text":"Au revoir."}
+  ]
+}

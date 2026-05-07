@@ -27,3 +27,15 @@ See `voice/README.md` for the canonical FR-CA voice direction, speed split, mega
 Scarlett should not sound like a bot with infinite branches. When the customer has already heard the known payment paths, the correct service move is patience and closure: acknowledge the cost, stop implying more hidden options, and ask whether they want a specific option detailed or need anything else.
 
 This behaviour belongs in Core because it applies across customer instances: finite facts should produce finite answers.
+
+## Live voice checkpoint
+
+As of 2026-05-07, the AMS reference instance validates the cached-first architecture end to end:
+
+- service tiles classify common interaction moments
+- approved first-audio lines live in `voice/manifests/`
+- current WAV assets live under `voice/assets/ams/`
+- `live_conversation.py` sends cached service-tile audio before generated chunks
+- cached-only service-tile answers skip generated TTS to prevent duplicate playback
+
+This remains a browser voice prototype, not the locked Telegram production channel. The next gate is a real iPhone/browser pass for perceived timing and barge-in quality.

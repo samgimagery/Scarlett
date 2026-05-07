@@ -1,0 +1,29 @@
+{
+  "name": "Scarlett French Chunking Matrix Bench",
+  "version": "2026-05-04-fr-chunking-matrix-v1",
+  "req": "REQ-108",
+  "locale": "fr-CA",
+  "voice_target": "amelie",
+  "model_target": "orpheus-french-q8:latest",
+  "status": "bench",
+  "design_principles": [
+    "Compare micro, sentence, and paragraph chunks using the same semantic answer.",
+    "Prefer the smallest chunk size that still sounds natural and avoids choppy resets.",
+    "Bench cacheable floor-holders separately from generated answer chunks."
+  ],
+  "lines": [
+    {"id":"fr_micro_001","type":"micro_chunk","cache_priority":"critical","intent":"receipt","text":"Bien sûr."},
+    {"id":"fr_micro_002","type":"micro_chunk","cache_priority":"critical","intent":"lookup","text":"Je regarde ça pour vous."},
+    {"id":"fr_micro_003","type":"micro_chunk","cache_priority":"critical","intent":"answer found","text":"J'ai trouvé."},
+    {"id":"fr_sentence_001","type":"sentence_chunk","cache_priority":"high","intent":"how it works opening","text":"Le fonctionnement est assez simple."},
+    {"id":"fr_sentence_002","type":"sentence_chunk","cache_priority":"high","intent":"how it works profile","text":"On commence par comprendre votre situation."},
+    {"id":"fr_sentence_003","type":"sentence_chunk","cache_priority":"high","intent":"how it works paths","text":"Est-ce que vous débutez en massage, est-ce que vous êtes déjà étudiant, ou est-ce que vous avez déjà une formation?"},
+    {"id":"fr_sentence_004","type":"sentence_chunk","cache_priority":"high","intent":"how it works routing","text":"Ensuite, je vous dirige vers le bon niveau, le bon campus, les dates disponibles et l'étape d'inscription."},
+    {"id":"fr_two_sentence_001","type":"two_sentence_chunk","cache_priority":"medium","intent":"two sentence intro","text":"Le fonctionnement est assez simple. On commence par comprendre votre situation."},
+    {"id":"fr_two_sentence_002","type":"two_sentence_chunk","cache_priority":"medium","intent":"two sentence routing","text":"Est-ce que vous débutez en massage, est-ce que vous êtes déjà étudiant, ou est-ce que vous avez déjà une formation? Ensuite, je vous dirige vers le bon niveau, le bon campus, les dates disponibles et l'étape d'inscription."},
+    {"id":"fr_paragraph_001","type":"paragraph_chunk","cache_priority":"medium","intent":"full answer","text":"Bien sûr. Le fonctionnement est assez simple. On commence par comprendre votre situation : est-ce que vous débutez en massage, est-ce que vous êtes déjà étudiant, ou est-ce que vous avez déjà une formation? Ensuite, je vous dirige vers le bon niveau, le bon campus, les dates disponibles et l'étape d'inscription."},
+    {"id":"fr_price_sentence_001","type":"sentence_chunk","cache_priority":"high","intent":"price answer one","text":"Pour le Niveau 1 en massothérapie, le prix est de quatre mille neuf cent quatre-vingt-quinze dollars."},
+    {"id":"fr_price_sentence_002","type":"sentence_chunk","cache_priority":"high","intent":"price answer two","text":"C'est le point de départ habituel si vous commencez une nouvelle formation en massage."},
+    {"id":"fr_price_paragraph_001","type":"paragraph_chunk","cache_priority":"medium","intent":"price full answer","text":"Pour le Niveau 1 en massothérapie, le prix est de quatre mille neuf cent quatre-vingt-quinze dollars. C'est le point de départ habituel si vous commencez une nouvelle formation en massage."}
+  ]
+}

@@ -71,3 +71,27 @@ Canonical line after options are already covered:
 ## Production rights rule
 
 Prototype/source voice work is acceptable for internal experimentation only. Any serious commercial deployment must use clean, licensed, or consented voice actor data trained into the same architecture.
+
+## AMS first-audio batch — 2026-05-07
+
+The first AMS cached-first voice batch is now generated, reviewed, and wired into the browser voice prototype.
+
+Canonical files:
+
+- `manifests/ams_first_recording_batch_v1.json` — source manifest for approved first-audio lines
+- `manifests/ams_first_recording_batch_v1.md` — human-readable manifest
+- `manifests/ams_first_recording_batch_v1_generation_report.json` — generation report
+- `manifests/ams_first_recording_batch_v1_asset_validation.json` — asset validation report
+- `generate_manifest_audio.py` — manifest-driven audio generation helper
+- `reviews/` — Whisper/listening review artifacts and regeneration records
+- `assets/ams/` — current approved AMS WAV assets, force-added despite the repo-wide `*.wav` ignore rule
+
+Current validation:
+
+- approved current assets: `28/28`
+- duration range: `1.63s–6.18s`
+- average duration: `4.08s`
+- live runtime: `live_conversation.py` resolves and sends cached service-tile WAVs before generated chunks
+- duplicate prevention: cached-only answers skip generated TTS
+
+Next validation is manual: run the browser/iPhone pass and judge perceived first-audio timing, duplicate playback, awkward lines, and barge-in behaviour.

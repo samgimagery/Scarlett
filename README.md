@@ -2,7 +2,7 @@
 
 Scarlett is the Telegram receptionist for the Académie de Massage Scientifique (AMS).
 
-Status: locked as the correct AMS receptionist baseline as of 2026-04-30; hardened live checkpoint as of 2026-05-07.
+Status: locked as the correct AMS receptionist baseline as of 2026-04-30; hardened live brain + cached-first live voice checkpoint as of 2026-05-07.
 
 Scarlett is not a general chatbot, search engine, or file browser. She is a warm French-first receptionist that answers from the AMS knowledge vault and guides prospective students through a progressive service flow.
 
@@ -17,7 +17,7 @@ Scarlett is not a general chatbot, search engine, or file browser. She is a warm
 - Active knowledge layer: `Réception Scarlett/`
 - Telegram service: `com.scarlett.receptionist-telegram`
 - RAG service: `com.scarlett.receptionist-rag`
-- Voice: intentionally parked; text mode is the correct current product mode
+- Voice: cached-first browser prototype is active via `com.scarlett.voice-web`; Telegram remains the locked text production channel
 
 ## What Scarlett Must Do
 
@@ -246,7 +246,9 @@ Request path:
 - `config.py` — AMS vault path, model, language, service port
 - `ollama_client.py` — Ollama generation
 - `logger.py` — SQLite interaction logging
-- `tts.py` and voice files — retained but not current product path
+- `tts.py` — Qwen3/TTS helpers for voice generation and cached-first live voice support
+- `live_conversation.py` — active browser voice runtime for `com.scarlett.voice-web`
+- `scarlett_core/voice/` — voice manifests, generation script, review artifacts, and cached AMS service-tile assets
 
 ## Service Commands
 
@@ -291,7 +293,7 @@ Package as:
 - customer-specific service profile/soul
 - Scarlett Service Flow Engine for staged customer-service behaviour
 - deterministic business facts layer for prices, locations, dates, forms, and catalog lists
-- channel adapters: Telegram, website bubble, admin demo, voice later
+- channel adapters: Telegram, website bubble, admin demo, cached-first browser voice
 - human approval workflow before website changes update the active truth
 - managed tuning loop from real conversations
 
@@ -316,7 +318,25 @@ Latest verification gates:
 - realistic conversation batch: `56` turns, `0` low-confidence rows
 - live trust regression: `15` turns
 
-Next priority: multi-turn harness v2 for long, messy conversations with context carryover, corrections, objections, and no-loop assertions.
+Voice/audio checkpoint as of 2026-05-07:
+
+- approved first-audio manifest: `scarlett_core/voice/manifests/ams_first_recording_batch_v1.json`
+- generated/reviewed AMS service-tile assets: `28/28` current WAV files
+- live browser voice path sends cached service-tile audio before generated answer chunks
+- cached-only answers skip generated TTS to avoid duplicate playback
+- final asset duration range: `1.63s–6.18s`, average `4.08s`
+
+Latest additional gates:
+
+- router guard regressions: `8/8`
+- repair polish regressions: `6/6`
+- action polish regressions: `6/6`
+- handoff polish regressions: `6/6`
+- campus/location regressions: `8/8`
+- greeting polish regressions: `5/5`
+- asset validation: `28/28` current AMS WAV files present
+
+Next priority: real browser/iPhone voice pass for perceived first-audio timing, duplicate playback, awkward lines, and barge-in behaviour.
 
 ## Locked GitHub Baseline
 
@@ -339,4 +359,4 @@ The locked baseline includes:
 - Smart Connections/local fallback retrieval
 - Telegram-safe formatting
 
-Do not move Scarlett back to voice-first or Gemini Live without a new explicit product decision. The correct current product is the written Telegram receptionist.
+Do not move Scarlett back to Gemini Live without a new explicit product decision. The correct production channel remains the written Telegram receptionist; the live voice path is now a cached-first browser prototype for first-audio and service-tile validation.

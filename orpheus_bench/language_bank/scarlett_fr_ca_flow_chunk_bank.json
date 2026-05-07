@@ -1,0 +1,19 @@
+{
+  "name": "Scarlett French Canadian Flow Chunk Bank",
+  "version": "2026-05-04-fr-ca-flow-chunks-v1",
+  "req": "REQ-108",
+  "locale": "fr-CA",
+  "voice_target": "amelie",
+  "model_target": "orpheus-french-q8:latest",
+  "status": "bench",
+  "lines": [
+    {"id":"fr_chunk_flow_001","type":"answer_chunk","cache_priority":"medium","intent":"how it works receipt","text":"Bien sûr."},
+    {"id":"fr_chunk_flow_002","type":"answer_chunk","cache_priority":"medium","intent":"how it works simple","text":"Le fonctionnement est assez simple."},
+    {"id":"fr_chunk_flow_003","type":"answer_chunk","cache_priority":"medium","intent":"how it works situation","text":"On commence par comprendre votre situation."},
+    {"id":"fr_chunk_flow_004","type":"answer_chunk","cache_priority":"medium","intent":"how it works pathways","text":"Est-ce que vous débutez en massage, est-ce que vous êtes déjà étudiant, ou est-ce que vous avez déjà une formation?"},
+    {"id":"fr_chunk_flow_005","type":"answer_chunk","cache_priority":"medium","intent":"how it works next","text":"Ensuite, je vous dirige vers le bon niveau, le bon campus, les dates disponibles et l'étape d'inscription."},
+    {"id":"fr_chunk_signup_001","type":"answer_chunk","cache_priority":"medium","intent":"signup receipt","text":"Parfait."},
+    {"id":"fr_chunk_signup_002","type":"answer_chunk","cache_priority":"medium","intent":"signup precheck","text":"Avant de vous envoyer le formulaire, je veux juste vérifier une chose."},
+    {"id":"fr_chunk_signup_003","type":"answer_chunk","cache_priority":"medium","intent":"signup question","text":"Est-ce que vous voulez commencer une formation complète en massothérapie, ou vous inscrire à un cours précis?"}
+  ]
+}

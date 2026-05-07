@@ -18,6 +18,7 @@ from scarlett_core.brain.timing.path_encoding import encode_path
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_CASES = ROOT / "interaction_cases_ams.jsonl"
+ASSETS_ROOT = ROOT.parents[1] / "voice" / "assets"
 
 NON_BLOCKING_STRATEGIES = {
     "hybrid_tile_then_generate",
@@ -92,6 +93,15 @@ def _asset_id(case_id: str, intent: str, line: str | None) -> str | None:
     return f"ams/{case_id}-{safe_intent}.wav"
 
 
+def _asset_status(asset_id: str | None) -> str:
+    if not asset_id:
+        return "not_applicable"
+    path = ASSETS_ROOT / asset_id
+    if path.exists() and path.stat().st_size > 1000:
+        return "ready"
+    return "scripted"
+
+
 @lru_cache(maxsize=1)
 def load_service_tiles(path: str | Path = DEFAULT_CASES) -> tuple[ServiceTile, ...]:
     tiles: list[ServiceTile] = []
@@ -122,7 +132,7 @@ def load_service_tiles(path: str | Path = DEFAULT_CASES) -> tuple[ServiceTile, .
             max_first_audio_ms=case.get("max_first_audio_ms"),
             max_answer_ms=case.get("max_answer_ms"),
             asset_id=_asset_id(case_id, intent, line),
-            asset_status="scripted" if line else "not_applicable",
+            asset_status=_asset_status(_asset_id(case_id, intent, line)),
             blocks_first_audio=blocks_first_audio,
             path_id=path.path_id,
             path_debug=path.path_debug,

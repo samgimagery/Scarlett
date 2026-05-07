@@ -47,6 +47,7 @@ CSM_FULL_URL = "http://127.0.0.1:8766/generate_full"
 STT_MODEL_SIZE = "small"
 LIVE_LANGUAGE = "fr"
 RAG_ASK_URL = "http://127.0.0.1:8000/ask"
+VOICE_ASSETS_ROOT = Path(__file__).resolve().parent / "scarlett_core" / "voice" / "assets"
 PREFILLER_MANIFEST = Path("/Users/samg/Media/voices/french_sources/xUiKafk2gWM/qwen3_tts_fr_lora_overnight_20260504-215150/prefiller_bank_req112_v2_p0_speed075/manifest.json")
 SYSTEM_PROMPT = """Tu es Scarlett, la réception virtuelle chaleureuse de l’Académie de Massage Scientifique. Réponds en français canadien naturel, clairement et brièvement. Tu aides avec les formations, prix, campus, inscriptions et prochaines étapes. Tu parles à voix haute: 1 à 3 phrases, pas de longs paragraphes."""
 
@@ -112,6 +113,51 @@ async def send_cached_prefiller(websocket, service_state, **state):
         "prefiller_id": item.get("id"),
     }))
     print(f"  🎵 Cached prefiller: {item.get('id')} — {item.get('text')}", flush=True)
+    return True
+
+
+def resolve_voice_asset(voice):
+    """Return the ready cached service-tile WAV path for a /ask voice block."""
+    if not voice or not voice.get("recording_ready"):
+        return None
+    asset_id = voice.get("asset_id")
+    if not asset_id:
+        return None
+    path = (VOICE_ASSETS_ROOT / asset_id).resolve()
+    try:
+        path.relative_to(VOICE_ASSETS_ROOT.resolve())
+    except ValueError:
+        return None
+    if path.exists() and path.stat().st_size > 1000:
+        return path
+    return None
+
+
+async def send_service_tile_audio(websocket, voice, *, elapsed_sec=None):
+    """Send the ready cached service-tile WAV before generated answer TTS."""
+    wav_path = resolve_voice_asset(voice)
+    if not wav_path:
+        return False
+    await websocket.send(json.dumps({
+        "type": "audio_info",
+        "time": f"{elapsed_sec:.2f}s" if elapsed_sec is not None else "cached",
+        "sampleRate": 24000,
+        "streaming": True,
+        "service_tile": True,
+        "asset_id": voice.get("asset_id"),
+        "tile_id": voice.get("tile_id"),
+        "intent": voice.get("intent"),
+        "line": voice.get("line"),
+    }))
+    with open(wav_path, "rb") as f:
+        await websocket.send(f.read())
+    await websocket.send(json.dumps({
+        "type": "audio_chunk",
+        "service_tile": True,
+        "asset_id": voice.get("asset_id"),
+        "intent": voice.get("intent"),
+    }))
+    print(f"  🎙️ Service tile asset: {voice.get('asset_id')} — {voice.get('line')}", flush=True)
     return True
 
 def split_sentences(text):
@@ -480,15 +526,29 @@ async def process_utterance(websocket, audio_data, vad):
 
         reply = (rag_data.get("answer") or "").strip() or "Je ne veux pas deviner. Je préfère vérifier avant de vous répondre."
         sources = rag_data.get("sources") or []
-        print(f"  🔍 RAG ask: {len(sources)} sources ({time.time()-rag_t0:.2f}s)")
+        voice = rag_data.get("voice") or {}
+        rag_elapsed = time.time() - rag_t0
+        print(f"  🔍 RAG ask: {len(sources)} sources ({rag_elapsed:.2f}s)")
         await websocket.send(json.dumps({
             "type": "nodes",
             "results": [{"path": str(src), "score": 1, "snippet": ""} for src in sources[:6]]
         }))
-        await websocket.send(json.dumps({"type": "reply", "text": reply}))
+        service_tile_sent = await send_service_tile_audio(websocket, voice, elapsed_sec=rag_elapsed)
+        await websocket.send(json.dumps({
+            "type": "reply",
+            "text": reply,
+            "voice": {
+                "intent": voice.get("intent"),
+                "asset_id": voice.get("asset_id"),
+                "recording_ready": voice.get("recording_ready"),
+                "service_tile_sent": service_tile_sent,
+            },
+        }))
 
         chunks = split_voice_chunks(reply)
-        if chunks and (not lookup_sent or len(reply) > 90):
+        if service_tile_sent and voice.get("line") and reply.strip() == str(voice.get("line")).strip():
+            chunks = []
+        if chunks and not service_tile_sent and (not lookup_sent or len(reply) > 90):
             await send_cached_prefiller(websocket, "answer_bridge", answer_ready=True)
 
         # Generate grounded answer chunks with the approved FR-CA Qwen3 LoRA voice.

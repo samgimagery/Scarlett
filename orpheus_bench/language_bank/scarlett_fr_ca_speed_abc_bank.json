@@ -1,0 +1,21 @@
+{
+  "name": "Scarlett French Canadian Speed A/B/C Bank",
+  "version": "2026-05-04-fr-ca-speed-abc-v1",
+  "req": "REQ-108",
+  "locale": "fr-CA",
+  "voice_target": "qwen3_tts_french_lora_pilot",
+  "model_target": "qwen3_tts_pilot_15min_finetuned",
+  "status": "bench",
+  "design_principles": [
+    "Compare 0.85, 0.75, and 0.65 on identical lines.",
+    "Judge whether slower reads as composed/premium or sedated/audiobook.",
+    "Include short fillers plus one longer real AMS answer chunk."
+  ],
+  "lines": [
+    {"id":"fr_speed_ack_003","type":"speed_test_filler","cache_priority":"high","intent":"confident acknowledgement","text":"Parfait, je m'en occupe."},
+    {"id":"fr_speed_lookup_003","type":"speed_test_filler","cache_priority":"high","intent":"search transition","text":"Je sais où regarder."},
+    {"id":"fr_speed_close_003","type":"speed_test_filler","cache_priority":"high","intent":"soft next step","text":"Je vais vous guider tranquillement."},
+    {"id":"fr_speed_repair_001","type":"speed_test_filler","cache_priority":"medium","intent":"repair without guessing","text":"Je ne veux pas deviner."},
+    {"id":"fr_speed_flow_chunk_001","type":"speed_test_answer_chunk","cache_priority":"medium","intent":"how it works chunk","text":"Bien sûr. On commence par comprendre votre situation, puis je vous dirige vers le bon niveau, le bon campus, les prochaines dates et l'étape d'inscription."}
+  ]
+}

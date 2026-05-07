@@ -77,3 +77,35 @@ curl -s http://127.0.0.1:5005/docs
 python3 chunking_poc.py --scenario q4_turn_taking --voice leah
 python3 chunking_poc.py --scenario q4_receptionist_primitives --voice leah
 ```
+
+## French Q8 wiring — 2026-05-04
+
+Registered downloaded French GGUF with Ollama:
+
+```bash
+ollama create orpheus-french-q8 -f models/french/Modelfile
+```
+
+Model path:
+
+```text
+/Users/samg/Media/models/orpheus-gguf/Orpheus-3b-French-FT-Q8_0.gguf
+```
+
+For the French bench, `external/Orpheus-FastAPI/.env` is currently pointed at:
+
+```text
+ORPHEUS_MODEL_NAME=orpheus-french-q8:latest
+```
+
+Previous English Q4 env is saved at:
+
+```text
+external/Orpheus-FastAPI/.env.q4-backup-20260504
+```
+
+Generated review package:
+
+```text
+outputs/language_bank/scarlett_fr_q8_amelie_marie_review_package_20260504.zip
+```

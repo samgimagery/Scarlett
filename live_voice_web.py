@@ -27,6 +27,7 @@ OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
 OLLAMA_MODEL = "glm-5.1:cloud"
 RAG_ASK_URL = "http://127.0.0.1:8000/ask"
 LIVE_LANGUAGE = "fr"
+VOICE_ASSETS_ROOT = Path(__file__).resolve().parent / "scarlett_core" / "voice" / "assets"
 PREFILLER_MANIFEST = Path("/Users/samg/Media/voices/french_sources/xUiKafk2gWM/qwen3_tts_fr_lora_overnight_20260504-215150/prefiller_bank_req112_v2_p0_speed075/manifest.json")
 
 # Scarlett fine-tuned voice (default)
@@ -117,9 +118,8 @@ def transcribe(audio_path):
     segments, _ = model.transcribe(data, language=LIVE_LANGUAGE, condition_on_previous_text=False)
     return " ".join(s.text for s in segments).strip()
 
-def generate(text):
-    """Ask the grounded RAG receptionist first; fall back to Ollama if needed."""
-    # Primary path: real RAG/service layers. This justifies lookup prefiller use.
+def ask_receptionist(text):
+    """Ask the grounded RAG receptionist and preserve voice metadata."""
     try:
         payload = json.dumps({"question": text, "language": LIVE_LANGUAGE}).encode()
         req = urllib.request.Request(RAG_ASK_URL, data=payload, headers={"Content-Type": "application/json"})
@@ -127,7 +127,7 @@ def generate(text):
             data = json.loads(resp.read())
         answer = (data.get("answer") or "").strip()
         if answer:
-            return answer
+            return data
     except Exception as e:
         print(f"  ⚠️ RAG ask failed, falling back to Ollama: {e}", flush=True)
 
@@ -140,7 +140,57 @@ def generate(text):
     conversation.append({"role": "assistant", "content": reply})
     if len(conversation) > 20:
         conversation[:] = [conversation[0]] + conversation[-18:]
-    return reply
+    return {"answer": reply, "voice": {}}
+
+
+def generate(text):
+    """Compatibility wrapper for older callers."""
+    return (ask_receptionist(text).get("answer") or "").strip()
+
+
+def resolve_voice_asset(voice):
+    """Return the ready cached service-tile WAV path for a /ask voice block."""
+    if not voice or not voice.get("recording_ready"):
+        return None
+    asset_id = voice.get("asset_id")
+    if not asset_id:
+        return None
+    path = (VOICE_ASSETS_ROOT / asset_id).resolve()
+    try:
+        path.relative_to(VOICE_ASSETS_ROOT.resolve())
+    except ValueError:
+        return None
+    if path.exists() and path.stat().st_size > 1000:
+        return path
+    return None
+
+
+async def send_service_tile_audio(websocket, voice, *, elapsed_sec=None):
+    """Send the ready cached service-tile WAV before live TTS generation."""
+    wav_path = resolve_voice_asset(voice)
+    if not wav_path:
+        return False
+    await websocket.send(json.dumps({
+        "type": "audio_info",
+        "time": f"{elapsed_sec:.2f}s" if elapsed_sec is not None else "cached",
+        "sampleRate": 24000,
+        "streaming": True,
+        "service_tile": True,
+        "asset_id": voice.get("asset_id"),
+        "tile_id": voice.get("tile_id"),
+        "intent": voice.get("intent"),
+        "line": voice.get("line"),
+    }))
+    with open(wav_path, "rb") as f:
+        await websocket.send(f.read())
+    await websocket.send(json.dumps({
+        "type": "audio_chunk",
+        "chunk": 0,
+        "service_tile": True,
+        "asset_id": voice.get("asset_id"),
+        "intent": voice.get("intent"),
+    }))
+    return True
 
 def synthesize(text):
     """Use the tts module — fine-tuned Scarlett voice."""
@@ -236,20 +286,39 @@ async def handle_ws(websocket):
                 # RAG / LLM — run in the background so the voice layer can decide whether
                 # a lookup prefiller is needed instead of always stacking filler lines.
                 t1 = time.time()
-                rag_task = asyncio.create_task(asyncio.to_thread(generate, text))
+                rag_task = asyncio.create_task(asyncio.to_thread(ask_receptionist, text))
                 lookup_sent = False
                 try:
-                    reply = await asyncio.wait_for(asyncio.shield(rag_task), timeout=0.70)
+                    answer_data = await asyncio.wait_for(asyncio.shield(rag_task), timeout=0.70)
                 except asyncio.TimeoutError:
                     lookup_sent = await send_cached_prefiller(websocket, "lookup", retrieval_running=True)
-                    reply = await rag_task
+                    answer_data = await rag_task
                 llm_time = time.time() - t1
-                await websocket.send(json.dumps({"type": "reply", "text": reply, "time": f"{llm_time:.2f}s"}))
+                reply = (answer_data.get("answer") or "").strip()
+                voice = answer_data.get("voice") or {}
+                service_tile_sent = await send_service_tile_audio(websocket, voice, elapsed_sec=llm_time)
+                await websocket.send(json.dumps({
+                    "type": "reply",
+                    "text": reply,
+                    "time": f"{llm_time:.2f}s",
+                    "voice": {
+                        "intent": voice.get("intent"),
+                        "asset_id": voice.get("asset_id"),
+                        "recording_ready": voice.get("recording_ready"),
+                        "service_tile_sent": service_tile_sent,
+                    },
+                }))
 
                 chunks = split_voice_chunks(reply)
+                # If the ready cached tile is the entire answer, do not synthesize and
+                # play the same sentence again. Hybrid/long answers still continue with
+                # generated chunks behind the first-audio asset.
+                if service_tile_sent and voice.get("line") and reply.strip() == str(voice.get("line")).strip():
+                    chunks = []
                 # A short answer bridge makes the delay after retrieval feel intentional,
-                # especially when live TTS has to generate several chunks.
-                if chunks and (lookup_sent is False or len(reply) > 90):
+                # especially when live TTS has to generate several chunks. Skip it when
+                # we already sent a purpose-built service-tile asset.
+                if chunks and not service_tile_sent and (lookup_sent is False or len(reply) > 90):
                     await send_cached_prefiller(websocket, "answer_bridge", answer_ready=True)
 
                 # TTS — stream every speakable chunk, including long single-sentence answers.

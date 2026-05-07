@@ -1,0 +1,1 @@
+{"text": " Bonjour, je suis Scarlett.", "segments": [{"id": 0, "seek": 0, "start": 0.0, "end": 2.0, "text": " Bonjour, je suis Scarlett.", "tokens": [50364, 25431, 11, 1506, 7624, 23181, 32547, 13, 50464], "temperature": 0.0, "avg_logprob": -0.2845054864883423, "compression_ratio": 0.7647058823529411, "no_speech_prob": 0.00605226494371891}], "language": "French"}

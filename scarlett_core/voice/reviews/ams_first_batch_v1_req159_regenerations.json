@@ -1,0 +1,86 @@
+{
+  "ok": true,
+  "rows": [
+    {
+      "case_id": "ams-int-036",
+      "asset_id": "ams/ams-int-036-repeat.wav",
+      "old_text": "Bien sûr — je vous le redis simplement.",
+      "new_text": "Bien sûr. Je vous le redis simplement.",
+      "source_path": "/Users/samg/Media/voices/tmp/scarlett_fr_lora_1778150611803/audio_000.wav",
+      "elapsed_sec": 2.953,
+      "bytes": 102764,
+      "duration_ms": 2140
+    },
+    {
+      "case_id": "ams-int-039",
+      "asset_id": "ams/ams-int-039-stt_failure.wav",
+      "old_text": "Je n’ai pas bien entendu — pouvez-vous me le redire?",
+      "new_text": "Désolée, je n’ai pas bien entendu. Pouvez-vous répéter?",
+      "source_path": "/Users/samg/Media/voices/tmp/scarlett_fr_lora_1778150614612/audio_000.wav",
+      "elapsed_sec": 2.497,
+      "bytes": 149324,
+      "duration_ms": 3110
+    },
+    {
+      "case_id": "ams-int-023",
+      "asset_id": "ams/ams-int-023-signup_direct.wav",
+      "old_text": "C’est pour commencer en Niveau 1, poursuivre vers un autre niveau, ou réserver un cours à la carte?",
+      "new_text": "C’est pour le Niveau 1, un autre niveau, ou un cours à la carte?",
+      "source_path": "/Users/samg/Media/voices/tmp/scarlett_fr_lora_1778150617110/audio_000.wav",
+      "elapsed_sec": 3.313,
+      "bytes": 188204,
+      "duration_ms": 3920
+    },
+    {
+      "case_id": "ams-int-025",
+      "asset_id": "ams/ams-int-025-reserve_place.wav",
+      "old_text": "Oui — on peut avancer, mais la place doit être confirmée par l’AMS, pas par moi directement.",
+      "new_text": "Oui — je peux vous guider, mais la place doit être confirmée par l’AMS.",
+      "source_path": "/Users/samg/Media/voices/tmp/scarlett_fr_lora_1778150620424/audio_000.wav",
+      "elapsed_sec": 3.416,
+      "bytes": 195410,
+      "duration_ms": 4070
+    },
+    {
+      "case_id": "ams-int-019",
+      "asset_id": "ams/ams-int-019-campus_list.wav",
+      "old_text": "L’AMS a 8 campus au Québec.",
+      "new_text": "L’AMS compte huit campus au Québec.",
+      "source_path": "/Users/samg/Media/voices/tmp/scarlett_fr_lora_1778150623840/audio_000.wav",
+      "elapsed_sec": 1.962,
+      "bytes": 107084,
+      "duration_ms": 2230
+    },
+    {
+      "case_id": "ams-int-036",
+      "asset_id": "ams/ams-int-036-repeat.wav",
+      "old_text": "Bien sûr. Je vous le redis simplement.",
+      "new_text": "D’accord. Je vous le redis simplement.",
+      "source_path": "/Users/samg/Media/voices/tmp/scarlett_fr_lora_1778150653634/audio_000.wav",
+      "elapsed_sec": 3.091,
+      "bytes": 116684,
+      "duration_ms": 2430
+    },
+    {
+      "case_id": "ams-int-019",
+      "asset_id": "ams/ams-int-019-campus_list.wav",
+      "old_text": "L’AMS compte huit campus au Québec.",
+      "new_text": "Il y a huit campus de l’AMS au Québec.",
+      "source_path": "/Users/samg/Media/voices/tmp/scarlett_fr_lora_1778150656539/audio_000.wav",
+      "elapsed_sec": 2.145,
+      "bytes": 104866,
+      "duration_ms": 2184
+    },
+    {
+      "case_id": "ams-int-019",
+      "asset_id": "ams/ams-int-019-campus_list.wav",
+      "old_text": "Il y a huit campus de l’AMS au Québec.",
+      "new_text": "L’école a huit campus au Québec.",
+      "source_path": "/Users/samg/Media/voices/tmp/scarlett_fr_lora_1778150670480/audio_000.wav",
+      "elapsed_sec": 2.874,
+      "bytes": 84044,
+      "duration_ms": 1750
+    }
+  ],
+  "regenerated_total": 8
+}

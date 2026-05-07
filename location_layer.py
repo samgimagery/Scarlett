@@ -118,7 +118,14 @@ def ranked_campuses(origin: Point, limit: int = 3) -> list[tuple[Campus, float]]
 def is_campus_location_query(question: str) -> bool:
     q = _norm(question)
     campus_words = ("campus", "college", "colleges", "ecole", "ecoles", "lieu", "lieux", "adresse")
-    location_words = ("plus pres", "proche", "pres de", "chez moi", "ville", "liste", "ou sont", "adresses", "adresse", "quels", "quelles")
+    location_words = (
+        "plus pres", "proche", "pres de", "chez moi", "ville", "liste", "ou sont",
+        "adresses", "adresse", "quel", "quels", "quelle", "quelles", "region", "regions", "emplacement",
+        "emplacements", "succursale", "succursales", "localisation", "ou est", "c'est ou",
+        "offre", "offrent", "disponible", "disponibilite", "disponibilites", "horaire",
+        "horaires", "heures", "date", "dates", "debut", "début", "cours", "programme",
+        "programmes",
+    )
     return any(w in q for w in campus_words) and any(w in q for w in location_words)
 
 
@@ -127,7 +134,13 @@ def answer_location(question: str) -> str | None:
         return None
 
     q = _norm(question)
-    asks_list = any(w in q for w in ("liste", "tous", "toutes", "quels", "quelles", "ou sont", "adresses"))
+    asks_list = any(w in q for w in ("liste", "tous", "toutes", "quels", "quelles", "ou sont", "adresses", "regions", "region", "emplacements", "succursales"))
+    asks_address = any(w in q for w in ("adresse", "adresses", "localisation", "ou est", "c'est ou", "exactement"))
+    asks_live_specifics = any(w in q for w in (
+        "horaire", "horaires", "heures", "date", "dates", "debut", "début", "disponible",
+        "disponibilite", "disponibilites", "place", "places", "offre quoi", "offrent quoi",
+        "quels cours", "quel cours", "programme disponible", "programmes disponibles",
+    ))
     origin = find_place(question)
 
     if asks_list and not origin:
@@ -135,10 +148,26 @@ def answer_location(question: str) -> str | None:
         return (
             "L’AMS a **8 campus au Québec** :\n\n"
             f"{rows}\n\n"
-            "Si vous me donnez votre ville, je peux vous indiquer lequel est probablement le plus proche."
+            "Si vous me donnez votre ville, je peux vous indiquer lequel est probablement le plus proche. "
+            "Pour les horaires, dates ou disponibilités par campus, il faut confirmer avec l’AMS."
         )
 
     if origin:
+        campus = next((c for c in CAMPUSES if c.name == origin.name), None)
+        if campus and asks_address and not asks_live_specifics:
+            return (
+                f"Le campus AMS de **{campus.name}** est situé ici :\n\n"
+                f"**{campus.address}**\n\n"
+                "Pour les horaires, dates de début ou disponibilités, je recommande de valider avec l’AMS, car ces détails peuvent changer selon la cohorte."
+            )
+        if campus and asks_live_specifics:
+            return (
+                f"Pour le campus de **{campus.name}**, je peux confirmer l’adresse : **{campus.address}**.\n\n"
+                "Pour les horaires, dates de début, places disponibles ou cours offerts à une cohorte précise, il vaut mieux confirmer directement avec l’AMS :\n"
+                "- Téléphone : **1 800 475-1964**\n"
+                "- Page contact : https://www.academiedemassage.com/contact/\n\n"
+                "Je préfère ne pas inventer une disponibilité ou un horaire de campus."
+            )
         nearest = ranked_campuses(origin, limit=3)
         best, best_km = nearest[0]
         rows = "\n".join(f"- {campus.name} — environ {km:.0f} km" for campus, km in nearest)

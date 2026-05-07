@@ -7,6 +7,7 @@ This checkpoint covers the production spine now running behind the AMS Telegram 
 ## Live production pieces
 
 - Telegram receptionist channel
+- Cached-first browser voice prototype via `com.scarlett.voice-web`
 - FastAPI RAG service on `:8000`
 - Ollama model: `qwen3.6:35b`
 - AMS vault: `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/AMS`
@@ -17,6 +18,7 @@ This checkpoint covers the production spine now running behind the AMS Telegram 
   - `handoff_layer.py`
   - current-student support layer
 - Scarlett Brain tracing, review queue, classifier, service tiles, and test harnesses under `scarlett_core/brain/`
+- Approved AMS first-audio WAV assets under `scarlett_core/voice/assets/ams/`
 
 ## Shipped in this hardening pass
 
@@ -84,31 +86,81 @@ Forbidden behaviour:
 - no fake live transfer
 - no false claim that a callback is confirmed
 
+
+### Multi-turn and polish expansion
+
+The hardening pass now includes a stateful multi-turn torture suite and dedicated polish regression families.
+
+Covered areas:
+
+- multi-turn context carryover and no-loop checks
+- repair language: did-not-hear, repeat, unclear
+- signup/action safety: link, direct signup, reserve-place
+- handoff safety: human, Julie, callback, send-info, campus contact
+- greeting/capability polish
+- campus/location richness
+
+Scarlett preserves the same safety line throughout: she can guide, prepare, and provide official paths, but she must not pretend to transfer, book, email, submit, confirm, or reserve anything externally.
+
+### First-audio live voice checkpoint
+
+Scarlett now has a cached-first live voice prototype for AMS service tiles.
+
+Shipped pieces:
+
+- `28/28` approved AMS `.wav` first-audio assets
+- manifest: `scarlett_core/voice/manifests/ams_first_recording_batch_v1.json`
+- generator: `scarlett_core/voice/generate_manifest_audio.py`
+- review artifacts under `scarlett_core/voice/reviews/`
+- live playback wiring in `live_conversation.py` and `live_voice_web.py`
+- service-tile asset readiness detection in `scarlett_core/brain/timing/service_tiles.py`
+
+Runtime behaviour:
+
+- cached tile audio is sent first when `/ask` returns ready voice metadata
+- cached-only answers skip generated TTS to avoid duplicate playback
+- hybrid answers play cached first audio, then generated answer chunks
+
+Final asset validation:
+
+- current AMS WAV assets: `28/28` present
+- duration range: `1.63s–6.18s`
+- average duration: `4.08s`
+
 ## Verification gates
 
 Latest live gates passed:
 
+- Python compile checks for touched runtime, voice, service-tile, and harness files
 - path classifier harness: `500/500`
 - held-out utterance eval: `250/250`
-- realistic conversation batch: `56` turns, `0` low-confidence rows
+- router guard regressions: `8/8`
+- repair polish regressions: `6/6`
+- action polish regressions: `6/6`
+- handoff polish regressions: `6/6`
+- campus/location regressions: `8/8`
+- greeting polish regressions: `5/5`
+- realistic conversation batch: passed, `0` low-confidence rows
 - live Telegram/RAG trust regression: `15` turns
-- Python compile checks for touched runtime and harness files
-- RAG and Telegram LaunchAgents restarted cleanly
+- asset validation: `28/28` current AMS WAV files present
 
 ## Current next priority
 
-Next work should be **multi-turn harness v2**.
+Next work should be the **real browser/iPhone voice pass**.
 
-Reason: single-turn facts and routing are now strong. The highest-risk failures are now long, messy real conversations where the caller changes topic, says “yes”, corrects Scarlett, gets frustrated, loops on price, or asks several follow-ups across multiple domains.
+Reason: code and harness gates are now green. The remaining risk is perceived product quality in the actual mic/browser loop: first-audio timing, duplicate playback, awkward takes, and interruption/barge-in behaviour.
 
-Planned v2 harness features:
+Recommended manual script:
 
-- 10–20 turn scripted conversations
-- assertions for no loops and no fake external actions
-- context carryover checks
-- same-user / changed-goal checks
-- price objection → alternative path checks
-- human handoff safety checks
-- report showing weak turns automatically
+- `Bonjour`
+- `Combien coûte le Niveau 1?`
+- `Quels campus avez-vous?`
+- `Je veux m’inscrire`
+- `Garde-moi une place`
+- `Peux-tu répéter?`
+- interrupt once mid-answer if the UI allows it
 
-After multi-turn v2, the next product layer is voice/service-tile recording.
+Decision after the pass:
+
+- if it sounds acceptable, harden timing and barge-in
+- if specific lines sound weak, regenerate only those WAV assets before further code work

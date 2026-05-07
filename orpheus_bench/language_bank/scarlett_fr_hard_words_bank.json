@@ -1,0 +1,28 @@
+{
+  "name": "Scarlett French AMS Hard Words Bench",
+  "version": "2026-05-04-fr-hard-words-v1",
+  "req": "REQ-108",
+  "locale": "fr-CA",
+  "voice_target": "amelie",
+  "model_target": "orpheus-french-q8:latest",
+  "status": "bench",
+  "design_principles": [
+    "Test AMS domain pronunciation before judging full conversational quality.",
+    "Use isolated terms and carrier sentences; isolated words reveal pronunciation, carrier sentences reveal rhythm.",
+    "Include Québec-relevant campus names, program names, prices, and common caller intents."
+  ],
+  "lines": [
+    {"id":"fr_word_001","type":"hard_word","cache_priority":"high","intent":"program term isolated","text":"Massothérapie."},
+    {"id":"fr_word_002","type":"hard_word","cache_priority":"high","intent":"program term isolated","text":"Kinésithérapie."},
+    {"id":"fr_word_003","type":"hard_word","cache_priority":"high","intent":"program term isolated","text":"Orthothérapie."},
+    {"id":"fr_word_004","type":"hard_word","cache_priority":"high","intent":"level isolated","text":"Niveau 1. Niveau 2. Niveau 3."},
+    {"id":"fr_word_005","type":"hard_word","cache_priority":"high","intent":"campus isolated","text":"Brossard. Drummondville. Trois-Rivières. Sherbrooke."},
+    {"id":"fr_word_006","type":"hard_word","cache_priority":"high","intent":"price isolated","text":"Quatre mille neuf cent quatre-vingt-quinze dollars."},
+    {"id":"fr_carrier_001","type":"carrier_sentence","cache_priority":"high","intent":"program sentence","text":"Le point de départ est le Niveau 1 en massothérapie."},
+    {"id":"fr_carrier_002","type":"carrier_sentence","cache_priority":"high","intent":"advanced sentence","text":"Après le Niveau 1, plusieurs étudiants regardent la kinésithérapie ou l'orthothérapie."},
+    {"id":"fr_carrier_003","type":"carrier_sentence","cache_priority":"high","intent":"campus sentence","text":"Les campus à vérifier sont Brossard, Drummondville, Trois-Rivières et Sherbrooke."},
+    {"id":"fr_carrier_004","type":"carrier_sentence","cache_priority":"high","intent":"price sentence","text":"Le Niveau 1 est à quatre mille neuf cent quatre-vingt-quinze dollars."},
+    {"id":"fr_carrier_005","type":"carrier_sentence","cache_priority":"high","intent":"registration sentence","text":"Avant de vous inscrire, je veux confirmer le bon niveau et le bon campus."},
+    {"id":"fr_carrier_006","type":"carrier_sentence","cache_priority":"high","intent":"current student sentence","text":"Si vous êtes déjà étudiant, je peux vous aider avec votre horaire, vos cours ou votre matériel."}
+  ]
+}

@@ -40,6 +40,9 @@ secrets.*
 *.jpeg
 *.gif
 
+# Product voice assets intentionally committed for the AMS cached-first prototype
+!scarlett_core/voice/assets/ams/*.wav
+
 # macOS / editor
 .DS_Store
 .vscode/
