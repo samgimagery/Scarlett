@@ -26,6 +26,7 @@ import soundfile as sf
 import tempfile
 import os
 import sys
+import urllib.request
 from pathlib import Path
 from websockets.http11 import Response
 from websockets.http import Headers
@@ -33,23 +34,147 @@ from websockets.http import Headers
 # Add receptionist dir to path for tts module
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# RAG imports
+# RAG / TTS imports
 import mcp_client
 from prompt import build_context, build_prompt
+import tts as tts_engine
 
 # --- Config ---
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
-OLLAMA_MODEL = "gemma4:e4b"
+OLLAMA_MODEL = "qwen3-coder:30b"
 CSM_SERVER_URL = "http://127.0.0.1:8766/generate"
 CSM_FULL_URL = "http://127.0.0.1:8766/generate_full"
 STT_MODEL_SIZE = "small"
-SYSTEM_PROMPT = """You are Scarlett, a warm and thoughtful companion. You help people find information from the knowledge base, but you speak like someone who genuinely cares — not like a search engine with manners. Be present, be curious, connect ideas naturally. Answer concisely — 1-3 sentences. You're speaking aloud, not writing essays."""
+LIVE_LANGUAGE = "fr"
+RAG_ASK_URL = "http://127.0.0.1:8000/ask"
+PREFILLER_MANIFEST = Path("/Users/samg/Media/voices/french_sources/xUiKafk2gWM/qwen3_tts_fr_lora_overnight_20260504-215150/prefiller_bank_req112_v2_p0_speed075/manifest.json")
+SYSTEM_PROMPT = """Tu es Scarlett, la réception virtuelle chaleureuse de l’Académie de Massage Scientifique. Réponds en français canadien naturel, clairement et brièvement. Tu aides avec les formations, prix, campus, inscriptions et prochaines étapes. Tu parles à voix haute: 1 à 3 phrases, pas de longs paragraphes."""
 
 # VAD settings
 VAD_THRESHOLD = 0.5
 VAD_MIN_SILENCE_MS = 700
 VAD_MIN_SPEECH_MS = 300
 VAD_SAMPLE_RATE = 16000
+
+
+# --- Cached FR-CA prefiller bank ---
+_prefillers = None
+
+def load_prefillers():
+    global _prefillers
+    if _prefillers is not None:
+        return _prefillers
+    by_id = {}
+    by_type = {}
+    if PREFILLER_MANIFEST.exists():
+        items = json.loads(PREFILLER_MANIFEST.read_text(encoding="utf-8"))
+        for item in items:
+            if item.get("ok") and item.get("wav") and os.path.exists(item["wav"]):
+                by_id[item["id"]] = item
+                by_type.setdefault(item.get("type", "unknown"), []).append(item)
+    _prefillers = {"by_id": by_id, "by_type": by_type}
+    print(f"  ✅ Prefillers ready: {len(by_id)} cached clips", flush=True)
+    return _prefillers
+
+def select_prefiller(service_state, *, retrieval_running=False, answer_ready=False):
+    bank = load_prefillers()["by_id"]
+    if service_state == "receipt":
+        return bank.get("p0_receipt_003") or bank.get("p0_receipt_002")
+    if service_state == "lookup" and retrieval_running:
+        return bank.get("p0_lookup_004") or bank.get("p0_lookup_001")
+    if service_state == "repair":
+        return bank.get("p0_repair_003")
+    if service_state == "answer_bridge" and answer_ready:
+        return bank.get("p0_answer_bridge_001")
+    return None
+
+async def send_cached_prefiller(websocket, service_state, **state):
+    item = select_prefiller(service_state, **state)
+    if not item:
+        return False
+    wav_path = item.get("wav")
+    if not wav_path or not os.path.exists(wav_path):
+        return False
+    await websocket.send(json.dumps({
+        "type": "audio_info",
+        "time": "cached",
+        "sampleRate": 24000,
+        "streaming": True,
+        "filler": True,
+        "prefiller_id": item.get("id"),
+        "prefiller_text": item.get("text"),
+    }))
+    with open(wav_path, "rb") as f:
+        await websocket.send(f.read())
+    await websocket.send(json.dumps({
+        "type": "audio_chunk",
+        "filler": True,
+        "prefiller_id": item.get("id"),
+    }))
+    print(f"  🎵 Cached prefiller: {item.get('id')} — {item.get('text')}", flush=True)
+    return True
+
+def split_sentences(text):
+    return [s.strip() for s in tts_engine._split_sentences(text) if s.strip()] or [text.strip()]
+
+
+def split_voice_chunks(text, max_chars=155):
+    """Split answer text into small speakable chunks for fast first audio."""
+    import re
+    base = split_sentences(text or "")
+    chunks = []
+    for sentence in base:
+        if len(sentence) <= max_chars:
+            chunks.append(sentence)
+            continue
+        parts = []
+        current = ""
+        for piece in re.split(r"(?<=[,;:])\s+", sentence):
+            piece = piece.strip()
+            if not piece:
+                continue
+            if current and len(current) + 1 + len(piece) > max_chars:
+                parts.append(current.strip())
+                current = piece
+            else:
+                current = f"{current} {piece}".strip()
+        if current:
+            parts.append(current.strip())
+        if len(parts) == 1 and len(parts[0]) > max_chars:
+            words = parts[0].split()
+            current = ""
+            parts = []
+            for word in words:
+                if current and len(current) + 1 + len(word) > max_chars:
+                    parts.append(current)
+                    current = word
+                else:
+                    current = f"{current} {word}".strip()
+            if current:
+                parts.append(current)
+        chunks.extend(parts)
+    return chunks or [text.strip()]
+
+
+def generate_qwen3_wav_bytes(text, speed=0.65):
+    path = tts_engine.generate_voice(text, lang=LIVE_LANGUAGE, speed=speed)
+    if not path or not os.path.exists(path):
+        return None
+    try:
+        with open(path, "rb") as f:
+            return f.read()
+    finally:
+        try:
+            os.unlink(path)
+        except Exception:
+            pass
+
+def ask_grounded_receptionist(question):
+    payload = json.dumps({"question": question, "language": LIVE_LANGUAGE}).encode()
+    req = urllib.request.Request(RAG_ASK_URL, data=payload, headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        data = json.loads(resp.read())
+    return data
 
 # --- Models (lazy-loaded) ---
 _stt = None
@@ -122,7 +247,7 @@ def transcribe(audio_data, sample_rate=16000):
         data = audio_data.astype(np.float32)
     else:
         data = audio_data
-    segments, _ = model.transcribe(data, language="en", condition_on_previous_text=False)
+    segments, _ = model.transcribe(data, language=LIVE_LANGUAGE, condition_on_previous_text=False)
     return " ".join(s.text for s in segments).strip()
 
 
@@ -330,107 +455,70 @@ async def process_utterance(websocket, audio_data, vad):
         }))
         print(f"  📝 STT: '{transcript}' ({stt_time:.2f}s)")
 
-        # RAG Search — find relevant knowledge
-        rag_t0 = time.time()
-        results = []
-        try:
-            results = await asyncio.to_thread(mcp_client.search, transcript)
-            print(f"  🔍 RAG: {len(results)} results ({time.time()-rag_t0:.2f}s)")
-
-            # Send constellation nodes to frontend
-            node_results = []
-            for r in results:
-                snippet = r.get("content", "")
-                if len(snippet) > 180:
-                    snippet = snippet[:180] + "..."
-                node_results.append({
-                    "path": r.get("path", ""),
-                    "score": r.get("score", 0),
-                    "snippet": snippet
-                })
-            await websocket.send(json.dumps({
-                "type": "nodes",
-                "results": node_results
-            }))
-        except Exception as e:
-            print(f"  ❌ RAG error: {e}")
-
-        # Build grounded prompt with knowledge context
-        context = build_context(results) if results else ""
-        _, grounded_prompt = build_prompt(transcript, context)
-
-        # CSM Filler (instant) — keep short (3s max audio)
-        filler_task = asyncio.create_task(generate_csm_audio("Hmm.", is_filler=True))
+        # Cached-first voice layer.
+        # Receipt does not imply work. Lookup is only spoken if the real
+        # RAG/service request is slow, avoiding stacked filler when answers are instant.
         tts_cancel = False
+        await send_cached_prefiller(websocket, "receipt")
 
-        # Send filler
+        # Grounded receptionist answer via the existing RAG/service API.
+        rag_t0 = time.time()
+        rag_task = asyncio.create_task(asyncio.to_thread(ask_grounded_receptionist, transcript))
+        lookup_sent = False
         try:
-            filler_data = await asyncio.wait_for(filler_task, timeout=5.0)
-            if filler_data and not tts_cancel:
-                await websocket.send(json.dumps({
-                    "type": "audio_info", "time": f"{time.time()-t0:.2f}s",
-                    "sampleRate": 24000, "streaming": True, "filler": True
-                }))
-                await websocket.send(filler_data)
-                print(f"  🎵 Filler sent ({time.time()-t0:.2f}s, {len(filler_data)} bytes)")
+            rag_data = await asyncio.wait_for(asyncio.shield(rag_task), timeout=0.70)
         except asyncio.TimeoutError:
-            print(f"  ⏰ Filler timeout ({time.time()-t0:.2f}s)")
+            lookup_sent = await send_cached_prefiller(websocket, "lookup", retrieval_running=True)
+            try:
+                rag_data = await rag_task
+            except Exception as e:
+                print(f"  ❌ RAG ask error: {e}")
+                rag_data = {"answer": "Je suis désolée, je n’arrive pas à vérifier l’information en ce moment.", "sources": []}
         except Exception as e:
-            print(f"  ❌ Filler error: {e}")
+            print(f"  ❌ RAG ask error: {e}")
+            rag_data = {"answer": "Je suis désolée, je n’arrive pas à vérifier l’information en ce moment.", "sources": []}
 
-        # Streaming LLM → TTS
-        audio_queue = asyncio.Queue()
-        first_audio = True
+        reply = (rag_data.get("answer") or "").strip() or "Je ne veux pas deviner. Je préfère vérifier avant de vous répondre."
+        sources = rag_data.get("sources") or []
+        print(f"  🔍 RAG ask: {len(sources)} sources ({time.time()-rag_t0:.2f}s)")
+        await websocket.send(json.dumps({
+            "type": "nodes",
+            "results": [{"path": str(src), "score": 1, "snippet": ""} for src in sources[:6]]
+        }))
+        await websocket.send(json.dumps({"type": "reply", "text": reply}))
+
+        chunks = split_voice_chunks(reply)
+        if chunks and (not lookup_sent or len(reply) > 90):
+            await send_cached_prefiller(websocket, "answer_bridge", answer_ready=True)
+
+        # Generate grounded answer chunks with the approved FR-CA Qwen3 LoRA voice.
         total_tts_start = time.time()
-
-        async def on_llm_sentence(sentence):
-            if tts_cancel:
-                return
-            # CSM is primary TTS — generates each sentence as it arrives from the LLM
-            audio_data = await generate_csm_audio(sentence, is_filler=False)
-            if audio_data and not tts_cancel:
-                await audio_queue.put({"audio": audio_data, "text": sentence})
-
-        llm_task = asyncio.create_task(stream_llm(grounded_prompt, on_sentence=on_llm_sentence))
-
-        # Stream TTS chunks
-        llm_done = False
-        while not llm_done or not audio_queue.empty():
+        first_audio = True
+        sent_chunks = 0
+        for i, sentence in enumerate(chunks, start=1):
             if tts_cancel:
                 break
-            try:
-                chunk = await asyncio.wait_for(audio_queue.get(), timeout=5.0)
-            except asyncio.TimeoutError:
-                if llm_task.done():
-                    llm_done = True
+            wav_data = await asyncio.to_thread(generate_qwen3_wav_bytes, sentence, 0.65)
+            if not wav_data or tts_cancel:
                 continue
-
             if first_audio:
                 first_audio = False
                 await websocket.send(json.dumps({
                     "type": "audio_info",
                     "time": f"{time.time()-total_tts_start:.2f}s",
-                    "sampleRate": 24000, "streaming": True
+                    "sampleRate": 24000,
+                    "streaming": len(chunks) > 1,
+                    "chunk": i,
+                    "total": len(chunks),
                 }))
+            await websocket.send(wav_data)
+            await websocket.send(json.dumps({"type": "audio_chunk", "text": sentence, "chunk": i, "total": len(chunks)}))
+            sent_chunks += 1
+            print(f"  🔊 Sent Qwen3 chunk {i}/{len(chunks)}: {sentence[:70]}")
+            await asyncio.sleep(0.04)
 
-            await websocket.send(chunk["audio"])
-            print(f"  🔊 Sent audio chunk: {len(chunk['audio'])} bytes, text: '{chunk['text'][:50]}'")
-            await websocket.send(json.dumps({
-                "type": "audio_chunk", "text": chunk["text"]
-            }))
-
-            if llm_task.done():
-                llm_done = True
-
-        try:
-            reply = await asyncio.wait_for(llm_task, timeout=10.0)
-            await websocket.send(json.dumps({"type": "reply", "text": reply}))
-        except asyncio.TimeoutError:
-            pass
-
-        await websocket.send(json.dumps({"type": "audio_done", "time": f"{time.time()-total_tts_start:.2f}s"}))
-        print(f"  ✅ Audio complete ({time.time()-total_tts_start:.2f}s)")
-        print(f"  ✅ Complete: STT={stt_time:.2f}s")
+        await websocket.send(json.dumps({"type": "audio_done", "time": f"{time.time()-total_tts_start:.2f}s", "chunks": sent_chunks, "planned_chunks": len(chunks)}))
+        print(f"  ✅ Complete: STT={stt_time:.2f}s, answer_tts={time.time()-total_tts_start:.2f}s")
 
     except Exception as e:
         print(f"  ❌ Process error: {e}")
@@ -439,7 +527,6 @@ async def process_utterance(websocket, audio_data, vad):
         tts_cancel = False
         vad.reset()
         await websocket.send(json.dumps({"type": "state", "state": "listening"}))
-
 
 # --- HTTP server (static files, separate thread) ---
 UI_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -477,6 +564,8 @@ async def main():
     get_stt()
     get_vad()
     print("  ✅ STT + VAD ready")
+    load_prefillers()
+    print("  🎙️ Voice: FR-CA Qwen3 LoRA + cached REQ-112 prefillers")
 
     # Single port — both HTTP and WS on 8765
     import websockets
